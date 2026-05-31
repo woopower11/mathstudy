@@ -13,7 +13,6 @@
     --surface2: #22263a;
     --border: #2e3350;
     --accent: #4f8ef7;
-    --accent2: #7c5cfc;
     --text: #e8eaf2;
     --text-dim: #8890b0;
     --text-muted: #555a7a;
@@ -22,9 +21,10 @@
     --calc: #ffb74d;
     --danger: #ef5350;
     --success: #66bb6a;
-    --sidebar-w: 280px;
-    --list-w: 230px;
+    --sidebar-w: 270px;
+    --list-w: 220px;
     --toolbar-h: 52px;
+    --panel-transition: 0.22s cubic-bezier(0.4,0,0.2,1);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -39,33 +39,33 @@
     flex-direction: column;
   }
 
-  /* ── 상단 툴바 ── */
+  /* ── 툴바 ── */
   #toolbar {
     height: var(--toolbar-h);
     background: var(--surface);
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 0 12px;
+    gap: 5px;
+    padding: 0 10px;
     flex-shrink: 0;
     z-index: 100;
+    overflow-x: auto;
   }
+  #toolbar::-webkit-scrollbar { display: none; }
 
-  #toolbar .title {
+  .title {
     font-size: 13px;
     font-weight: 700;
     color: var(--accent);
-    letter-spacing: 0.05em;
-    margin-right: 8px;
     white-space: nowrap;
+    margin-right: 4px;
   }
-
-  .tb-sep { width: 1px; height: 24px; background: var(--border); margin: 0 4px; }
+  .tb-sep { width: 1px; height: 24px; background: var(--border); margin: 0 3px; flex-shrink:0; }
 
   .tb-btn {
-    height: 34px;
-    padding: 0 10px;
+    height: 32px;
+    padding: 0 9px;
     border: 1px solid var(--border);
     background: var(--surface2);
     color: var(--text);
@@ -73,43 +73,47 @@
     cursor: pointer;
     font-size: 12px;
     font-family: inherit;
-    display: flex; align-items: center; gap: 5px;
+    display: flex; align-items: center; gap: 4px;
     transition: all 0.15s;
     white-space: nowrap;
+    flex-shrink: 0;
   }
   .tb-btn:hover { background: var(--border); }
   .tb-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .tb-btn.on { background: rgba(79,142,247,0.2); border-color: var(--accent); color: var(--accent); }
   .tb-btn.danger { border-color: var(--danger); color: var(--danger); }
   .tb-btn.danger:hover { background: var(--danger); color: #fff; }
   .tb-btn.save-btn { border-color: var(--success); color: var(--success); }
   .tb-btn.save-btn:hover { background: var(--success); color: #fff; }
 
   .color-swatch {
-    width: 20px; height: 20px;
+    width: 18px; height: 18px;
     border-radius: 50%;
     border: 2px solid transparent;
     cursor: pointer;
     transition: transform 0.15s;
+    flex-shrink: 0;
   }
-  .color-swatch.selected { border-color: #fff; transform: scale(1.25); }
+  .color-swatch.selected { border-color: #fff; transform: scale(1.3); }
 
   #pen-size {
-    width: 70px;
-    height: 28px;
+    width: 64px; height: 26px;
     background: var(--surface2);
     border: 1px solid var(--border);
     border-radius: 4px;
     color: var(--text);
     padding: 0 4px;
     accent-color: var(--accent);
+    flex-shrink: 0;
   }
 
   #zoom-label {
     font-size: 11px;
     color: var(--text-dim);
     font-family: 'JetBrains Mono', monospace;
-    min-width: 36px;
+    min-width: 34px;
     text-align: center;
+    flex-shrink: 0;
   }
 
   #nav-info {
@@ -118,6 +122,7 @@
     font-family: 'JetBrains Mono', monospace;
     margin-left: auto;
     white-space: nowrap;
+    flex-shrink: 0;
   }
 
   /* ── 메인 레이아웃 ── */
@@ -125,33 +130,44 @@
     display: flex;
     flex: 1;
     overflow: hidden;
+    position: relative;
   }
 
-  /* ── 사이드바 ── */
-  #sidebar {
-    width: var(--sidebar-w);
+  /* ── 패널 공통 (슬라이드 토글) ── */
+  .slide-panel {
     background: var(--surface);
     border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
     overflow: hidden;
+    transition: width var(--panel-transition), opacity var(--panel-transition);
+  }
+  .slide-panel.collapsed {
+    width: 0 !important;
+    opacity: 0;
+    border-right: none;
+    pointer-events: none;
   }
 
+  /* ── 사이드바 (단원 트리) ── */
+  #sidebar { width: var(--sidebar-w); }
+
   .sidebar-header {
-    padding: 10px 12px 8px;
+    padding: 9px 12px 7px;
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.12em;
     color: var(--text-muted);
     text-transform: uppercase;
     border-bottom: 1px solid var(--border);
+    white-space: nowrap;
   }
 
   #tree {
     flex: 1;
     overflow-y: auto;
-    padding: 6px 0;
+    padding: 4px 0;
   }
   #tree::-webkit-scrollbar { width: 4px; }
   #tree::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
@@ -167,12 +183,11 @@
     align-items: center;
     gap: 6px;
     user-select: none;
+    white-space: nowrap;
   }
   .subject-node .badge {
-    font-size: 9px;
-    padding: 1px 6px;
-    border-radius: 10px;
-    font-weight: 600;
+    font-size: 9px; padding: 1px 6px;
+    border-radius: 10px; font-weight: 600;
   }
   .math1 { color: var(--math1); }
   .math1 .badge { background: rgba(79,195,247,0.15); color: var(--math1); }
@@ -189,8 +204,8 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    border-radius: 0;
     transition: background 0.1s, color 0.1s;
+    white-space: nowrap;
   }
   .chapter-node:hover { background: var(--surface2); color: var(--text); }
   .chapter-node.active { background: rgba(79,142,247,0.15); color: var(--accent); }
@@ -199,23 +214,16 @@
     font-size: 10px;
     font-family: 'JetBrains Mono', monospace;
     color: var(--text-muted);
+    padding-left: 8px;
   }
-
   .subject-chapters { display: none; }
   .subject-chapters.open { display: block; }
 
   /* ── 문항 리스트 ── */
-  #qlist-panel {
-    width: var(--list-w);
-    background: var(--surface);
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 0;
-  }
+  #qlist-panel { width: var(--list-w); }
 
   .qlist-header {
-    padding: 10px 12px 8px;
+    padding: 9px 12px 7px;
     font-size: 11px;
     color: var(--text-dim);
     border-bottom: 1px solid var(--border);
@@ -240,9 +248,10 @@
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     transition: background 0.1s, color 0.1s;
     border-left: 2px solid transparent;
+    white-space: nowrap;
   }
   .q-item:hover { background: var(--surface2); color: var(--text); }
   .q-item.active { background: rgba(79,142,247,0.12); color: var(--accent); border-left-color: var(--accent); }
@@ -254,46 +263,58 @@
     flex: 1;
     position: relative;
     overflow: hidden;
-    background: #181c28;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    background: #fff;       /* 흰 배경 */
+    min-width: 0;
   }
 
+  /* 스크롤 컨테이너 */
   #viewer-scroll {
     position: absolute;
     inset: 0;
     overflow: auto;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
   }
-  #viewer-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
-  #viewer-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  #viewer-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+  #viewer-scroll::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+  #viewer-scroll::-webkit-scrollbar-track { background: #f0f0f0; }
 
-  #viewer-inner {
+  /* 흰 종이 영역 — 문제 이미지 + 아래 필기 공간 */
+  #paper {
     position: relative;
-    display: inline-block;
-    margin: 20px;
-    cursor: crosshair;
+    width: 860px;           /* 기본 종이 너비 */
+    min-height: 100%;
+    margin: 0 auto;
+    background: #fff;
+    /* 줌은 JS로 transform */
+    transform-origin: top left;
   }
 
+  /* 문제 이미지 */
   #problem-img {
     display: block;
-    max-width: 100%;
+    width: 100%;
     user-select: none;
     pointer-events: none;
-    border-radius: 4px;
+    border-bottom: 1.5px dashed #e0e0e0;  /* 문제/필기공간 구분선 */
   }
 
+  /* 필기 전용 추가 공간 */
+  #extra-space {
+    width: 100%;
+    height: 600px;          /* 필기 여백 */
+    background: #fff;
+  }
+
+  /* 필기 캔버스 — 이미지 + 여백 전체 덮음 */
   #draw-canvas {
     position: absolute;
     top: 0; left: 0;
     pointer-events: all;
     touch-action: none;
-    border-radius: 4px;
+    cursor: crosshair;
+    /* width/height는 JS로 설정 */
   }
 
+  /* 빈 상태 */
   #empty-state {
     position: absolute;
     inset: 0;
@@ -301,135 +322,99 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: var(--text-muted);
+    color: #aaa;
     gap: 12px;
+    background: #f8f8f8;
     pointer-events: none;
   }
-  #empty-state .icon { font-size: 48px; opacity: 0.3; }
-  #empty-state .msg { font-size: 14px; }
+  #empty-state .icon { font-size: 52px; opacity: 0.35; }
+  #empty-state .msg { font-size: 15px; }
 
-  /* ── 모바일/태블릿 토글 ── */
-  #menu-toggle {
+  /* 오버레이 (모바일) */
+  #overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 199;
     display: none;
-    width: 36px; height: 36px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    color: var(--text);
-    font-size: 16px;
-    cursor: pointer;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
   }
-
-  /* ── 반응형 ── */
-  @media (max-width: 900px) {
-    :root { --sidebar-w: 260px; --list-w: 200px; }
-    #menu-toggle { display: flex; }
-    #sidebar, #qlist-panel {
-      position: fixed;
-      top: var(--toolbar-h);
-      bottom: 0;
-      z-index: 200;
-      transform: translateX(-100%);
-      transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
-    }
-    #sidebar { left: 0; }
-    #qlist-panel {
-      left: var(--sidebar-w);
-      transform: translateX(calc(-100% - var(--sidebar-w)));
-    }
-    #sidebar.open { transform: translateX(0); }
-    #qlist-panel.open { transform: translateX(calc(-1 * var(--sidebar-w))); }
-    #overlay {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.5);
-      z-index: 199;
-      display: none;
-    }
-    #overlay.show { display: block; }
-  }
-
-  @media (max-width: 600px) {
-    .tb-btn span { display: none; }
-    .title { display: none; }
-    #nav-info { font-size: 10px; }
-  }
+  #overlay.show { display: block; }
 </style>
 </head>
 <body>
 
-<!-- 오버레이 (모바일) -->
-<div id="overlay" onclick="closeMenu()"></div>
+<div id="overlay" onclick="closePanels()"></div>
 
-<!-- 상단 툴바 -->
+<!-- 툴바 -->
 <div id="toolbar">
-  <button id="menu-toggle" onclick="toggleMenu()">☰</button>
-  <div class="title">📐 수능 수학 기출 뷰어</div>
+  <div class="title">📐 수능 수학</div>
+
+  <!-- 패널 토글 -->
+  <button class="tb-btn on" id="btn-sidebar" onclick="togglePanel('sidebar')" title="단원 목록">☰ 단원</button>
+  <button class="tb-btn on" id="btn-qlist"   onclick="togglePanel('qlist-panel')" title="문항 목록">≡ 문항</button>
 
   <div class="tb-sep"></div>
 
   <!-- 필기 도구 -->
-  <button class="tb-btn active" id="btn-pen" onclick="setTool('pen')">✏️ <span>펜</span></button>
-  <button class="tb-btn" id="btn-eraser" onclick="setTool('eraser')">🧹 <span>지우개</span></button>
-  <button class="tb-btn danger" onclick="clearCanvas()">🗑️ <span>전체삭제</span></button>
+  <button class="tb-btn active" id="btn-pen"    onclick="setTool('pen')">✏️ 펜</button>
+  <button class="tb-btn"        id="btn-eraser" onclick="setTool('eraser')">🧹 지우개</button>
+  <button class="tb-btn danger"                 onclick="clearCanvas()">🗑️ 삭제</button>
 
   <div class="tb-sep"></div>
 
   <!-- 색상 -->
   <div class="color-swatch selected" style="background:#ef5350" onclick="setColor('#ef5350')" title="빨강"></div>
-  <div class="color-swatch" style="background:#ffb74d" onclick="setColor('#ffb74d')" title="주황"></div>
-  <div class="color-swatch" style="background:#66bb6a" onclick="setColor('#66bb6a')" title="초록"></div>
-  <div class="color-swatch" style="background:#4f8ef7" onclick="setColor('#4f8ef7')" title="파랑"></div>
-  <div class="color-swatch" style="background:#ffffff" onclick="setColor('#ffffff')" title="흰색"></div>
-  <input type="range" id="pen-size" min="1" max="20" value="3" title="펜 굵기" oninput="penSize=+this.value">
+  <div class="color-swatch" style="background:#ff7043" onclick="setColor('#ff7043')" title="주황"></div>
+  <div class="color-swatch" style="background:#1565c0" onclick="setColor('#1565c0')" title="파랑"></div>
+  <div class="color-swatch" style="background:#2e7d32" onclick="setColor('#2e7d32')" title="초록"></div>
+  <div class="color-swatch" style="background:#000000" onclick="setColor('#000000')" title="검정"></div>
+  <input type="range" id="pen-size" min="1" max="20" value="3" title="굵기" oninput="penSize=+this.value">
 
   <div class="tb-sep"></div>
 
   <!-- 확대/축소 -->
-  <button class="tb-btn" onclick="changeZoom(-0.1)">➖</button>
+  <button class="tb-btn" onclick="changeZoom(-0.15)">➖</button>
   <div id="zoom-label">100%</div>
-  <button class="tb-btn" onclick="changeZoom(0.1)">➕</button>
-  <button class="tb-btn" onclick="resetZoom()"><span>맞춤</span></button>
+  <button class="tb-btn" onclick="changeZoom(0.15)">➕</button>
+  <button class="tb-btn" onclick="resetZoom()">맞춤</button>
 
   <div class="tb-sep"></div>
 
   <!-- 이전/다음 -->
-  <button class="tb-btn" onclick="navigate(-1)">◀ <span>이전</span></button>
-  <button class="tb-btn" onclick="navigate(1)"><span>다음</span> ▶</button>
+  <button class="tb-btn" onclick="navigate(-1)">◀</button>
+  <button class="tb-btn" onclick="navigate(1)">▶</button>
 
   <div class="tb-sep"></div>
 
-  <!-- 저장 -->
-  <button class="tb-btn save-btn" onclick="saveWithDrawing()">💾 <span>PNG 저장</span></button>
+  <button class="tb-btn save-btn" onclick="saveWithDrawing()">💾 저장</button>
 
   <div id="nav-info">—</div>
 </div>
 
 <!-- 메인 -->
 <div id="main">
-  <!-- 사이드바: 단원 트리 -->
-  <div id="sidebar">
+
+  <!-- 단원 사이드바 -->
+  <div id="sidebar" class="slide-panel">
     <div class="sidebar-header">단원 목록</div>
     <div id="tree"></div>
   </div>
 
   <!-- 문항 리스트 -->
-  <div id="qlist-panel">
+  <div id="qlist-panel" class="slide-panel">
     <div class="qlist-header" id="qlist-title">단원을 선택하세요</div>
     <div id="qlist"></div>
   </div>
 
-  <!-- 문제 뷰어 -->
+  <!-- 뷰어 -->
   <div id="viewer">
     <div id="empty-state">
       <div class="icon">📖</div>
-      <div class="msg">왼쪽에서 단원 → 문제를 선택하세요</div>
+      <div class="msg">단원 → 문제를 선택하세요</div>
     </div>
     <div id="viewer-scroll">
-      <div id="viewer-inner" style="display:none">
+      <div id="paper" style="display:none">
         <img id="problem-img" alt="문제" onload="onImgLoad()">
+        <div id="extra-space"></div>
         <canvas id="draw-canvas"></canvas>
       </div>
     </div>
@@ -438,7 +423,7 @@
 
 <script>
 // ══════════════════════════════════════════════════
-// 데이터베이스 (수학Ⅰ + 수학Ⅱ + 미적분 전체)
+// 데이터베이스
 // ══════════════════════════════════════════════════
 const DB = {
   "수학Ⅰ": {
@@ -524,19 +509,17 @@ const DB = {
 // 파일 경로 변환
 // ══════════════════════════════════════════════════
 function codeToPath(code) {
-  // "2022-6-모의-1" → "크롭결과/2022년도_6월모의고사/2022년도_6월모의고사_01번.png"
-  // "2022-9-모평-23" → "크롭결과/2022년도_9월모의고사/2022년도_9월모의고사_미적분_23번.png"
   const parts = code.split('-');
-  const year = parts[0];
-  const num  = parseInt(parts[parts.length - 1]);
-  const mid  = parts.slice(1, -1).join('-');
+  const year  = parts[0];
+  const num   = parseInt(parts[parts.length - 1]);
+  const mid   = parts.slice(1, -1).join('-');
 
   let dir;
   if (mid === '수능') dir = `${year}년도_수능`;
   else if (mid.includes('6')) dir = `${year}년도_6월모의고사`;
   else dir = `${year}년도_9월모의고사`;
 
-  const numStr = String(num).padStart(2, '0');
+  const numStr   = String(num).padStart(2, '0');
   const calcPart = num >= 23 ? '_미적분' : '';
   return `크롭결과/${dir}/${dir}${calcPart}_${numStr}번.png`;
 }
@@ -552,7 +535,30 @@ let penColor = '#ef5350';
 let penSize = 3;
 let drawing = false;
 let lastX = 0, lastY = 0;
-const savedStrokes = {}; // key: code → dataURL
+const savedStrokes = {};
+
+// 패널 상태
+const panelState = { sidebar: true, 'qlist-panel': true };
+
+// ══════════════════════════════════════════════════
+// 패널 토글
+// ══════════════════════════════════════════════════
+function togglePanel(id) {
+  panelState[id] = !panelState[id];
+  const el = document.getElementById(id);
+  el.classList.toggle('collapsed', !panelState[id]);
+  const btnId = id === 'sidebar' ? 'btn-sidebar' : 'btn-qlist';
+  document.getElementById(btnId).classList.toggle('on', panelState[id]);
+}
+function closePanels() {
+  ['sidebar','qlist-panel'].forEach(id => {
+    panelState[id] = false;
+    document.getElementById(id).classList.add('collapsed');
+  });
+  document.getElementById('btn-sidebar').classList.remove('on');
+  document.getElementById('btn-qlist').classList.remove('on');
+  document.getElementById('overlay').classList.remove('show');
+}
 
 // ══════════════════════════════════════════════════
 // 트리 렌더링
@@ -560,32 +566,29 @@ const savedStrokes = {}; // key: code → dataURL
 function buildTree() {
   const tree = document.getElementById('tree');
   tree.innerHTML = '';
-
   Object.entries(DB).forEach(([subject, data]) => {
-    const chapters = data.chapters;
-    const totalQ = Object.values(chapters).reduce((s,a) => s + a.length, 0);
-
-    const subjectEl = document.createElement('div');
-    subjectEl.className = `subject-node ${data.color}`;
-    subjectEl.innerHTML = `<span>▾</span> ${subject} <span class="badge">${totalQ}문항</span>`;
+    const totalQ = Object.values(data.chapters).reduce((s,a) => s+a.length, 0);
+    const subEl = document.createElement('div');
+    subEl.className = `subject-node ${data.color}`;
+    subEl.innerHTML = `<span class="arrow">▾</span> ${subject} <span class="badge">${totalQ}</span>`;
 
     const chapList = document.createElement('div');
     chapList.className = 'subject-chapters open';
 
-    Object.entries(chapters).forEach(([chapName, questions]) => {
+    Object.entries(data.chapters).forEach(([name, questions]) => {
       const chapEl = document.createElement('div');
       chapEl.className = 'chapter-node';
-      chapEl.innerHTML = `${chapName} <span class="cnt">${questions.length}</span>`;
-      chapEl.addEventListener('click', () => selectChapter(chapEl, chapName, questions));
+      chapEl.innerHTML = `${name}<span class="cnt">${questions.length}</span>`;
+      chapEl.addEventListener('click', () => selectChapter(chapEl, name, questions));
       chapList.appendChild(chapEl);
     });
 
-    subjectEl.addEventListener('click', () => {
+    subEl.addEventListener('click', () => {
       chapList.classList.toggle('open');
-      subjectEl.querySelector('span').textContent = chapList.classList.contains('open') ? '▾' : '▸';
+      subEl.querySelector('.arrow').textContent = chapList.classList.contains('open') ? '▾' : '▸';
     });
 
-    tree.appendChild(subjectEl);
+    tree.appendChild(subEl);
     tree.appendChild(chapList);
   });
 }
@@ -599,7 +602,6 @@ function selectChapter(el, name, questions) {
   activeChapEl = el;
   el.classList.add('active');
 
-  // 정렬
   const sorted = [...questions].sort((a, b) => {
     const parse = c => {
       const p = c.split('-');
@@ -609,9 +611,8 @@ function selectChapter(el, name, questions) {
       const t = m.includes('6') ? 1 : m.includes('9') ? 2 : 3;
       return [y, t, n];
     };
-    const [ay, at, an] = parse(a);
-    const [by, bt, bn] = parse(b);
-    return ay !== by ? ay-by : at !== bt ? at-bt : an-bn;
+    const [ay,at,an] = parse(a), [by,bt,bn] = parse(b);
+    return ay!==by ? ay-by : at!==bt ? at-bt : an-bn;
   });
 
   currentQuestions = sorted;
@@ -623,65 +624,73 @@ function selectChapter(el, name, questions) {
     const item = document.createElement('div');
     item.className = 'q-item';
     item.id = `qi-${i}`;
-    const hasNote = savedStrokes[code] ? '<span class="has-note">✍</span>' : '';
-    item.innerHTML = `<span class="idx">${i+1}</span> ${code} ${hasNote}`;
+    const note = savedStrokes[code] ? '<span class="has-note">✍</span>' : '';
+    item.innerHTML = `<span class="idx">${i+1}</span>${code}${note}`;
     item.addEventListener('click', () => selectQuestion(i));
     qlist.appendChild(item);
   });
-
-  closeMenu();
 }
 
 // ══════════════════════════════════════════════════
 // 문제 선택
 // ══════════════════════════════════════════════════
 function selectQuestion(idx) {
-  // 이전 필기 저장
-  if (currentIdx >= 0 && currentQuestions[currentIdx]) {
-    saveCurrentStroke();
-  }
-
+  if (currentIdx >= 0) saveCurrentStroke();
   currentIdx = idx;
   const code = currentQuestions[idx];
 
-  // 리스트 하이라이트
   document.querySelectorAll('.q-item').forEach(el => el.classList.remove('active'));
   const qEl = document.getElementById(`qi-${idx}`);
   if (qEl) { qEl.classList.add('active'); qEl.scrollIntoView({block:'nearest'}); }
 
-  // 이미지 로드
-  const path = codeToPath(code);
-  const img = document.getElementById('problem-img');
-  const inner = document.getElementById('viewer-inner');
+  const img   = document.getElementById('problem-img');
+  const paper = document.getElementById('paper');
   const empty = document.getElementById('empty-state');
 
-  img.src = path;
-  inner.style.display = 'inline-block';
+  img.src = codeToPath(code);
+  paper.style.display = 'block';
   empty.style.display = 'none';
 
   updateNavInfo();
 }
 
+// ══════════════════════════════════════════════════
+// 이미지 로드 완료 → 캔버스 세팅
+// ══════════════════════════════════════════════════
 function onImgLoad() {
-  resizeCanvas();
+  const img    = document.getElementById('problem-img');
+  const extra  = document.getElementById('extra-space');
+  const canvas = document.getElementById('draw-canvas');
+  const paper  = document.getElementById('paper');
+
+  // paper 너비 = 뷰어 너비에 맞춤 (최소 860)
+  const viewerW = document.getElementById('viewer').clientWidth;
+  const paperW  = Math.max(860, viewerW - 40);
+  paper.style.width = paperW + 'px';
+
+  // 캔버스 = 이미지 높이 + 추가 여백 높이
+  const imgH    = img.offsetHeight;
+  const extraH  = 600;
+  extra.style.height = extraH + 'px';
+
+  canvas.width  = paperW;
+  canvas.height = imgH + extraH;
+  canvas.style.width  = paperW + 'px';
+  canvas.style.height = (imgH + extraH) + 'px';
+
+  // 흰 배경 채우기 (캔버스 기본은 투명)
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
   // 저장된 필기 복원
   const code = currentQuestions[currentIdx];
   if (code && savedStrokes[code]) {
-    const ctx = document.getElementById('draw-canvas').getContext('2d');
-    const imgEl = new Image();
-    imgEl.onload = () => ctx.drawImage(imgEl, 0, 0);
-    imgEl.src = savedStrokes[code];
+    const tmp = new Image();
+    tmp.onload = () => ctx.drawImage(tmp, 0, 0);
+    tmp.src = savedStrokes[code];
   }
-  applyZoom();
-}
 
-function resizeCanvas() {
-  const img = document.getElementById('problem-img');
-  const canvas = document.getElementById('draw-canvas');
-  canvas.width  = img.naturalWidth  || img.offsetWidth;
-  canvas.height = img.naturalHeight || img.offsetHeight;
-  canvas.style.width  = img.offsetWidth  + 'px';
-  canvas.style.height = img.offsetHeight + 'px';
+  applyZoom();
 }
 
 // ══════════════════════════════════════════════════
@@ -693,28 +702,26 @@ function navigate(dir) {
   if (next < 0 || next >= currentQuestions.length) return;
   selectQuestion(next);
 }
-
 function updateNavInfo() {
   const el = document.getElementById('nav-info');
-  if (currentIdx < 0 || !currentQuestions.length) { el.textContent = '—'; return; }
-  el.textContent = `${currentIdx+1} / ${currentQuestions.length}`;
+  el.textContent = currentIdx < 0 ? '—' : `${currentIdx+1} / ${currentQuestions.length}`;
 }
 
 // ══════════════════════════════════════════════════
 // 줌
 // ══════════════════════════════════════════════════
 function changeZoom(delta) {
-  zoom = Math.min(3, Math.max(0.3, zoom + delta));
+  zoom = Math.min(3, Math.max(0.3, +(zoom + delta).toFixed(2)));
   applyZoom();
 }
-function resetZoom() {
-  zoom = 1;
-  applyZoom();
-}
+function resetZoom() { zoom = 1; applyZoom(); }
 function applyZoom() {
-  const inner = document.getElementById('viewer-inner');
-  inner.style.transform = `scale(${zoom})`;
-  inner.style.transformOrigin = 'top left';
+  const paper = document.getElementById('paper');
+  paper.style.transform = `scale(${zoom})`;
+  paper.style.transformOrigin = 'top left';
+  // 스크롤 영역이 줌된 크기를 감지하도록 wrapper 높이 조정
+  const scroll = document.getElementById('viewer-scroll');
+  scroll.style.height = '100%';
   document.getElementById('zoom-label').textContent = Math.round(zoom*100) + '%';
 }
 
@@ -726,43 +733,38 @@ function setTool(t) {
   document.getElementById('btn-pen').classList.toggle('active', t==='pen');
   document.getElementById('btn-eraser').classList.toggle('active', t==='eraser');
 }
-
 function setColor(c) {
   penColor = c;
   document.querySelectorAll('.color-swatch').forEach(el => {
-    el.classList.toggle('selected', el.style.background === c || el.style.backgroundColor === c);
+    const bg = el.style.backgroundColor || el.style.background;
+    el.classList.toggle('selected', bg === c || el.style.background === c);
   });
   if (tool !== 'pen') setTool('pen');
 }
 
+const canvas = document.getElementById('draw-canvas');
+const ctx    = canvas.getContext('2d');
+
 function getCanvasPos(e) {
-  const canvas = document.getElementById('draw-canvas');
-  const rect = canvas.getBoundingClientRect();
+  const rect   = canvas.getBoundingClientRect();
   const scaleX = canvas.width  / rect.width;
   const scaleY = canvas.height / rect.height;
-  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-  return {
-    x: (clientX - rect.left) * scaleX,
-    y: (clientY - rect.top)  * scaleY
-  };
+  const cx = e.touches ? e.touches[0].clientX : e.clientX;
+  const cy = e.touches ? e.touches[0].clientY : e.clientY;
+  return { x: (cx - rect.left) * scaleX, y: (cy - rect.top) * scaleY };
 }
-
-const canvas = document.getElementById('draw-canvas');
-const ctx = canvas.getContext('2d');
 
 function startDraw(e) {
   if (currentIdx < 0) return;
   e.preventDefault();
   drawing = true;
-  const pos = getCanvasPos(e);
-  lastX = pos.x; lastY = pos.y;
+  const p = getCanvasPos(e);
+  lastX = p.x; lastY = p.y;
 }
-
 function doDraw(e) {
   if (!drawing) return;
   e.preventDefault();
-  const pos = getCanvasPos(e);
+  const p = getCanvasPos(e);
   ctx.beginPath();
   if (tool === 'eraser') {
     ctx.globalCompositeOperation = 'destination-out';
@@ -775,12 +777,11 @@ function doDraw(e) {
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   ctx.moveTo(lastX, lastY);
-  ctx.lineTo(pos.x, pos.y);
+  ctx.lineTo(p.x, p.y);
   ctx.stroke();
-  lastX = pos.x; lastY = pos.y;
+  lastX = p.x; lastY = p.y;
 }
-
-function endDraw(e) {
+function endDraw() {
   drawing = false;
   ctx.globalCompositeOperation = 'source-over';
 }
@@ -802,7 +803,6 @@ function clearCanvas() {
 function saveCurrentStroke() {
   const code = currentQuestions[currentIdx];
   if (!code) return;
-  // 빈 캔버스면 저장 안 함
   const blank = document.createElement('canvas');
   blank.width = canvas.width; blank.height = canvas.height;
   if (canvas.toDataURL() !== blank.toDataURL()) {
@@ -816,18 +816,17 @@ function saveCurrentStroke() {
 function refreshQListNote() {
   document.querySelectorAll('.q-item').forEach((el, i) => {
     const code = currentQuestions[i];
-    const has = savedStrokes[code];
     const noteSpan = el.querySelector('.has-note');
-    if (has && !noteSpan) {
-      el.insertAdjacentHTML('beforeend', '<span class="has-note">✍</span>');
-    } else if (!has && noteSpan) {
+    if (savedStrokes[code] && !noteSpan) {
+      el.insertAdjacentHTML('beforeend','<span class="has-note">✍</span>');
+    } else if (!savedStrokes[code] && noteSpan) {
       noteSpan.remove();
     }
   });
 }
 
 // ══════════════════════════════════════════════════
-// PNG 저장
+// PNG 저장 (문제 + 필기 합치기)
 // ══════════════════════════════════════════════════
 function saveWithDrawing() {
   if (currentIdx < 0) return;
@@ -836,7 +835,12 @@ function saveWithDrawing() {
   out.width  = canvas.width;
   out.height = canvas.height;
   const oc = out.getContext('2d');
-  oc.drawImage(img, 0, 0, out.width, out.height);
+  // 흰 배경
+  oc.fillStyle = '#ffffff';
+  oc.fillRect(0, 0, out.width, out.height);
+  // 문제 이미지
+  oc.drawImage(img, 0, 0, canvas.width, img.naturalHeight * (canvas.width / img.naturalWidth));
+  // 필기
   oc.drawImage(canvas, 0, 0);
   const link = document.createElement('a');
   link.download = `${currentQuestions[currentIdx]}_풀이.png`;
@@ -845,38 +849,19 @@ function saveWithDrawing() {
 }
 
 // ══════════════════════════════════════════════════
-// 모바일 메뉴
-// ══════════════════════════════════════════════════
-function toggleMenu() {
-  const sb = document.getElementById('sidebar');
-  const qp = document.getElementById('qlist-panel');
-  const ov = document.getElementById('overlay');
-  const open = sb.classList.toggle('open');
-  qp.classList.toggle('open', open);
-  ov.classList.toggle('show', open);
-}
-function closeMenu() {
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('qlist-panel').classList.remove('open');
-  document.getElementById('overlay').classList.remove('show');
-}
-
-// ══════════════════════════════════════════════════
 // 키보드 단축키
 // ══════════════════════════════════════════════════
 document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
   if (e.key === 'ArrowRight' || e.key === 'ArrowDown') navigate(1);
   if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   navigate(-1);
-  if (e.key === '+' || e.key === '=') changeZoom(0.1);
-  if (e.key === '-') changeZoom(-0.1);
+  if (e.key === '+' || e.key === '=') changeZoom(0.15);
+  if (e.key === '-') changeZoom(-0.15);
   if (e.key === '0') resetZoom();
   if (e.key === 'p') setTool('pen');
   if (e.key === 'e') setTool('eraser');
 });
 
-// ══════════════════════════════════════════════════
-// 초기화
-// ══════════════════════════════════════════════════
 buildTree();
 </script>
 </body>
