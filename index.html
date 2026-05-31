@@ -48,6 +48,8 @@
       flex-shrink: 0;
       z-index: 100;
       overflow-x: auto;
+      -webkit-overflow-scrolling: touch; /* 터치 스크롤 부드럽게 */
+      touch-action: pan-x; /* 가로 터치스크롤 명시 */
     }
     #toolbar::-webkit-scrollbar { display: none; }
 
@@ -261,6 +263,7 @@
       position: absolute;
       inset: 0;
       overflow: auto;
+      -webkit-overflow-scrolling: touch; /* iOS 부드러운 스크롤 */
     }
     #viewer-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
     #viewer-scroll::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
@@ -294,7 +297,7 @@
       top: 0;
       left: 0;
       pointer-events: all;
-      touch-action: none;
+      touch-action: none; /* 한 손가락 필기를 위해 기본 터치 동작 차단 (두 손가락일 때는 JS에서 허용) */
       cursor: crosshair;
     }
 
@@ -321,8 +324,6 @@
       display: none;
     }
     #overlay.show { display: block; }
-
-    /* 모달은 더 이상 사용하지 않으므로 CSS 제거해도 되지만 남겨둠 */
   </style>
 </head>
 <body>
@@ -358,7 +359,6 @@
     <button class="tb-btn" onclick="navigate(1)">▶</button>
 
     <div class="tb-sep"></div>
-    <!-- 해설 보기 버튼: 클릭 시 새 탭에서 유튜브 열기 -->
     <button class="tb-btn video-btn" id="btn-video" disabled onclick="openVideoInNewTab()">▶ 해설</button>
     <button class="tb-btn save-btn" onclick="saveWithDrawing()">💾 저장</button>
 
@@ -723,15 +723,13 @@
     }
 
     // ══════════════════════════════════════════════════
-    // 새 탭에서 유튜브 열기 (iframe 대신)
+    // 새 탭에서 유튜브 열기
     // ══════════════════════════════════════════════════
     function openVideoInNewTab() {
       if (currentIdx < 0) return;
       const code = currentQuestions[currentIdx];
       const info = getVideoInfo(code);
       if (!info || !info.videoId) return;
-
-      // YouTube watch URL 생성 (시작 시간 포함)
       let url = `https://www.youtube.com/watch?v=${info.videoId}`;
       if (typeof info.startTime === 'number' && !isNaN(info.startTime) && info.startTime >= 0) {
         url += `&t=${info.startTime}s`;
@@ -877,7 +875,7 @@
     }
 
     // ══════════════════════════════════════════════════
-    // 이미지 로드 완료 → 캔버스 세팅
+    // 이미지 로드 완료 → 캔버스 세팅 (반응형 대응)
     // ══════════════════════════════════════════════════
     function onImgLoad() {
       const img = document.getElementById('problem-img');
@@ -885,10 +883,11 @@
       const canvas = document.getElementById('draw-canvas');
       const paper = document.getElementById('paper');
       const viewerW = document.getElementById('viewer').clientWidth;
-      const paperW = Math.max(860, viewerW - 40);
+      // 작은 화면에서는 뷰어 폭에 맞추고, 큰 화면에서는 최소 860px
+      const paperW = Math.min(860, viewerW - 40); 
       paper.style.width = paperW + 'px';
       const imgH = img.offsetHeight;
-      const extraH = 600;
+      const extraH = Math.max(600, window.innerHeight * 0.8); // 작은 화면에서도 충분한 여백
       extra.style.height = extraH + 'px';
       canvas.width = paperW;
       canvas.height = imgH + extraH;
@@ -939,7 +938,7 @@
     }
 
     // ══════════════════════════════════════════════════
-    // 드로잉
+    // 드로잉 (터치 1개: 필기, 2개 이상: 스크롤/줌 허용)
     // ══════════════════════════════════════════════════
     function setTool(t) {
       tool = t;
@@ -966,15 +965,27 @@
       const cy = e.touches ? e.touches[0].clientY : e.clientY;
       return { x: (cx - rect.left) * scaleX, y: (cy - rect.top) * scaleY };
     }
+
     function startDraw(e) {
       if (currentIdx < 0) return;
+      // 터치가 2개 이상이면 필기 시작하지 않음 (스크롤/줌 허용)
+      if (e.touches && e.touches.length > 1) {
+        drawing = false;
+        return;
+      }
       e.preventDefault();
       drawing = true;
       const p = getCanvasPos(e);
       lastX = p.x;
       lastY = p.y;
     }
+
     function doDraw(e) {
+      // 이미 2개 이상 터치면 드로잉 중지
+      if (e.touches && e.touches.length > 1) {
+        drawing = false;
+        return;
+      }
       if (!drawing) return;
       e.preventDefault();
       const p = getCanvasPos(e);
@@ -995,6 +1006,7 @@
       lastX = p.x;
       lastY = p.y;
     }
+
     function endDraw() {
       drawing = false;
       ctx.globalCompositeOperation = 'source-over';
