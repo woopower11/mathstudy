@@ -21,7 +21,6 @@
     --calc: #ffb74d;
     --danger: #ef5350;
     --success: #66bb6a;
-    --warning: #ffa726;
     --sidebar-w: 270px;
     --list-w: 220px;
     --toolbar-h: 52px;
@@ -86,10 +85,6 @@
   .tb-btn.danger:hover { background: var(--danger); color: #fff; }
   .tb-btn.save-btn { border-color: var(--success); color: var(--success); }
   .tb-btn.save-btn:hover { background: var(--success); color: #fff; }
-  .tb-btn.video-btn { border-color: var(--warning); color: var(--warning); }
-  .tb-btn.video-btn:hover { background: var(--warning); color: #000; }
-  .tb-btn.video-btn.disabled { border-color: var(--text-muted); color: var(--text-muted); cursor: not-allowed; opacity: 0.5; }
-  .tb-btn.video-btn.disabled:hover { background: var(--surface2); color: var(--text-muted); }
 
   .color-swatch {
     width: 18px; height: 18px;
@@ -262,17 +257,17 @@
   .q-item.active { background: rgba(79,142,247,0.12); color: var(--accent); border-left-color: var(--accent); }
   .q-item .idx { color: var(--text-muted); font-size: 10px; min-width: 18px; }
   .q-item .has-note { color: var(--success); font-size: 10px; margin-left: auto; }
-  .q-item .has-video { color: var(--warning); font-size: 10px; margin-left: 3px; }
 
   /* ── 뷰어 영역 ── */
   #viewer {
     flex: 1;
     position: relative;
     overflow: hidden;
-    background: #fff;
+    background: #fff;       /* 흰 배경 */
     min-width: 0;
   }
 
+  /* 스크롤 컨테이너 */
   #viewer-scroll {
     position: absolute;
     inset: 0;
@@ -282,37 +277,44 @@
   #viewer-scroll::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
   #viewer-scroll::-webkit-scrollbar-track { background: #f0f0f0; }
 
+  /* 흰 종이 영역 — 문제 이미지 + 아래 필기 공간 */
   #paper {
     position: relative;
-    width: 860px;
+    width: 860px;           /* 기본 종이 너비 */
     min-height: 100%;
     margin: 0 auto;
     background: #fff;
+    /* 줌은 JS로 transform */
     transform-origin: top left;
   }
 
+  /* 문제 이미지 */
   #problem-img {
     display: block;
     width: 100%;
     user-select: none;
     pointer-events: none;
-    border-bottom: 1.5px dashed #e0e0e0;
+    border-bottom: 1.5px dashed #e0e0e0;  /* 문제/필기공간 구분선 */
   }
 
+  /* 필기 전용 추가 공간 */
   #extra-space {
     width: 100%;
-    height: 600px;
+    height: 600px;          /* 필기 여백 */
     background: #fff;
   }
 
+  /* 필기 캔버스 — 이미지 + 여백 전체 덮음 */
   #draw-canvas {
     position: absolute;
     top: 0; left: 0;
     pointer-events: all;
     touch-action: none;
     cursor: crosshair;
+    /* width/height는 JS로 설정 */
   }
 
+  /* 빈 상태 */
   #empty-state {
     position: absolute;
     inset: 0;
@@ -328,85 +330,6 @@
   #empty-state .icon { font-size: 52px; opacity: 0.35; }
   #empty-state .msg { font-size: 15px; }
 
-  /* ── 유튜브 모달 ── */
-  #video-modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.75);
-    z-index: 999;
-    align-items: center;
-    justify-content: center;
-  }
-  #video-modal.show { display: flex; }
-
-  .modal-box {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    width: min(90vw, 800px);
-    padding: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-  }
-  .modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    color: var(--text);
-    font-size: 13px;
-    font-weight: 600;
-    padding: 0 4px;
-  }
-  .modal-close {
-    background: none;
-    border: none;
-    color: var(--text-dim);
-    font-size: 20px;
-    cursor: pointer;
-    padding: 0 4px;
-    line-height: 1;
-  }
-  .modal-close:hover { color: #fff; }
-  .modal-iframe-wrap {
-    position: relative;
-    width: 100%;
-    padding-bottom: 56.25%;
-    background: #000;
-    border-radius: 8px;
-    overflow: hidden;
-  }
-  .modal-iframe-wrap iframe {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    border: 0;
-  }
-
-  /* ── 토스트 메시지 ── */
-  #toast {
-    position: fixed;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-size: 13px;
-    z-index: 1100;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s;
-    white-space: nowrap;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-  }
-  #toast.show { opacity: 1; }
-
   /* 오버레이 (모바일) */
   #overlay {
     position: fixed; inset: 0;
@@ -419,44 +342,26 @@
 </head>
 <body>
 
-<!-- 토스트 메시지 -->
-<div id="toast"></div>
-
-<!-- 유튜브 모달 -->
-<div id="video-modal" onclick="if(event.target===this) closeVideo()">
-  <div class="modal-box">
-    <div class="modal-header">
-      <span id="modal-title">📺 해설 영상</span>
-      <button class="modal-close" onclick="closeVideo()">✕</button>
-    </div>
-    <div class="modal-iframe-wrap">
-      <iframe id="yt-frame" src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-    </div>
-  </div>
-</div>
-
 <div id="overlay" onclick="closePanels()"></div>
 
 <!-- 툴바 -->
 <div id="toolbar">
   <div class="title">📐 수능 수학</div>
 
+  <!-- 패널 토글 -->
   <button class="tb-btn on" id="btn-sidebar" onclick="togglePanel('sidebar')" title="단원 목록">☰ 단원</button>
   <button class="tb-btn on" id="btn-qlist"   onclick="togglePanel('qlist-panel')" title="문항 목록">≡ 문항</button>
 
   <div class="tb-sep"></div>
 
-  <!-- ★ 해설 영상 버튼 -->
-  <button class="tb-btn video-btn disabled" id="btn-video" onclick="openVideo()" title="해설 영상 보기">▶ 해설 영상</button>
-
-  <div class="tb-sep"></div>
-
+  <!-- 필기 도구 -->
   <button class="tb-btn active" id="btn-pen"    onclick="setTool('pen')">✏️ 펜</button>
   <button class="tb-btn"        id="btn-eraser" onclick="setTool('eraser')">🧹 지우개</button>
   <button class="tb-btn danger"                 onclick="clearCanvas()">🗑️ 삭제</button>
 
   <div class="tb-sep"></div>
 
+  <!-- 색상 -->
   <div class="color-swatch selected" style="background:#ef5350" onclick="setColor('#ef5350')" title="빨강"></div>
   <div class="color-swatch" style="background:#ff7043" onclick="setColor('#ff7043')" title="주황"></div>
   <div class="color-swatch" style="background:#1565c0" onclick="setColor('#1565c0')" title="파랑"></div>
@@ -466,6 +371,7 @@
 
   <div class="tb-sep"></div>
 
+  <!-- 확대/축소 -->
   <button class="tb-btn" onclick="changeZoom(-0.15)">➖</button>
   <div id="zoom-label">100%</div>
   <button class="tb-btn" onclick="changeZoom(0.15)">➕</button>
@@ -473,6 +379,7 @@
 
   <div class="tb-sep"></div>
 
+  <!-- 이전/다음 -->
   <button class="tb-btn" onclick="navigate(-1)">◀</button>
   <button class="tb-btn" onclick="navigate(1)">▶</button>
 
@@ -486,16 +393,19 @@
 <!-- 메인 -->
 <div id="main">
 
+  <!-- 단원 사이드바 -->
   <div id="sidebar" class="slide-panel">
     <div class="sidebar-header">단원 목록</div>
     <div id="tree"></div>
   </div>
 
+  <!-- 문항 리스트 -->
   <div id="qlist-panel" class="slide-panel">
     <div class="qlist-header" id="qlist-title">단원을 선택하세요</div>
     <div id="qlist"></div>
   </div>
 
+  <!-- 뷰어 -->
   <div id="viewer">
     <div id="empty-state">
       <div class="icon">📖</div>
@@ -615,116 +525,6 @@ function codeToPath(code) {
 }
 
 // ══════════════════════════════════════════════════
-// 타임스탬프 데이터베이스 (로드 후 저장)
-// ══════════════════════════════════════════════════
-let tsDB = {}; // { "2026_수능": { "전체": { url, video_id, timestamps } } }
-
-async function loadTimestamps() {
-  try {
-    const res = await fetch('./timestamps.json');
-    if (!res.ok) throw new Error('timestamps.json not found');
-    tsDB = await res.json();
-    console.log('✅ 타임스탬프 DB 로드 완료:', Object.keys(tsDB).length, '개 시험');
-  } catch (e) {
-    console.warn('⚠️ timestamps.json 로드 실패:', e.message);
-    tsDB = {};
-  }
-}
-
-// 문제 코드 → { videoId, seconds } 또는 null
-function resolveVideoTimestamp(code) {
-  if (!tsDB || Object.keys(tsDB).length === 0) return null;
-
-  const parts = code.split('-');
-  // parts 예: ["2025", "6", "모의", "15"] 또는 ["2022", "수능", "1"] 또는 ["2023", "9", "모평", "27"]
-  const year = parts[0];
-  const num  = parseInt(parts[parts.length - 1]);
-  const mid  = parts.slice(1, -1).join('-'); // "6-모의", "9-모평", "수능"
-
-  // DB 키 변환
-  let examKey = '';
-  if (mid === '수능') examKey = `${year}_수능`;
-  else if (mid.includes('6')) examKey = `${year}_6월`;
-  else if (mid.includes('9')) examKey = `${year}_9월`;
-  else return null;
-
-  const exam = tsDB[examKey];
-  if (!exam) return null;
-
-  // 파트 결정
-  // "전체"만 있는 시험: 2026_*, 2025_수능, 2024_9월, 2024_6월, 2023_*, 2022_*
-  // "공통"/"선택" 분리: 2025_9월, 2025_6월, 2024_수능
-  let part = '전체';
-  if (exam['공통'] || exam['선택']) {
-    // 분리된 시험
-    part = (num >= 1 && num <= 22) ? '공통' : '선택';
-  }
-
-  const partData = exam[part];
-  if (!partData || !partData.timestamps) return null;
-
-  const seconds = partData.timestamps[String(num)];
-  if (seconds === undefined || seconds === null) return null;
-
-  return {
-    videoId: partData.video_id,
-    seconds: seconds,
-    url: partData.url
-  };
-}
-
-// 현재 문제에 해설 영상이 있는지
-function hasVideo() {
-  if (currentIdx < 0) return false;
-  const code = currentQuestions[currentIdx];
-  const info = resolveVideoTimestamp(code);
-  return info !== null && info.seconds !== undefined;
-}
-
-// 버튼 상태 업데이트
-function updateVideoButton() {
-  const btn = document.getElementById('btn-video');
-  if (currentIdx < 0 || !hasVideo()) {
-    btn.classList.add('disabled');
-    btn.title = '해설 영상 없음';
-  } else {
-    btn.classList.remove('disabled');
-    btn.title = '해설 영상 보기';
-  }
-}
-
-// 모달 열기
-function openVideo() {
-  if (currentIdx < 0) return;
-  const code = currentQuestions[currentIdx];
-  const info = resolveVideoTimestamp(code);
-
-  if (!info || info.seconds === undefined) {
-    showToast('⚠️ 이 문제는 연결된 해설 영상이 없습니다');
-    return;
-  }
-
-  const ytUrl = `https://www.youtube.com/embed/${info.videoId}?start=${info.seconds}&autoplay=1&rel=0`;
-  document.getElementById('yt-frame').src = ytUrl;
-  document.getElementById('modal-title').textContent = `📺 ${code} 해설`;
-  document.getElementById('video-modal').classList.add('show');
-}
-
-function closeVideo() {
-  document.getElementById('video-modal').classList.remove('show');
-  document.getElementById('yt-frame').src = ''; // 재생 중지
-}
-
-// 토스트 메시지
-function showToast(msg) {
-  const toast = document.getElementById('toast');
-  toast.textContent = msg;
-  toast.classList.add('show');
-  clearTimeout(toast._timeout);
-  toast._timeout = setTimeout(() => toast.classList.remove('show'), 2500);
-}
-
-// ══════════════════════════════════════════════════
 // 상태
 // ══════════════════════════════════════════════════
 let currentQuestions = [];
@@ -737,6 +537,7 @@ let drawing = false;
 let lastX = 0, lastY = 0;
 const savedStrokes = {};
 
+// 패널 상태
 const panelState = { sidebar: true, 'qlist-panel': true };
 
 // ══════════════════════════════════════════════════
@@ -824,8 +625,7 @@ function selectChapter(el, name, questions) {
     item.className = 'q-item';
     item.id = `qi-${i}`;
     const note = savedStrokes[code] ? '<span class="has-note">✍</span>' : '';
-    const vid = resolveVideoTimestamp(code) ? '<span class="has-video">▶</span>' : '';
-    item.innerHTML = `<span class="idx">${i+1}</span>${code}${note}${vid}`;
+    item.innerHTML = `<span class="idx">${i+1}</span>${code}${note}`;
     item.addEventListener('click', () => selectQuestion(i));
     qlist.appendChild(item);
   });
@@ -852,7 +652,6 @@ function selectQuestion(idx) {
   empty.style.display = 'none';
 
   updateNavInfo();
-  updateVideoButton();
 }
 
 // ══════════════════════════════════════════════════
@@ -864,10 +663,12 @@ function onImgLoad() {
   const canvas = document.getElementById('draw-canvas');
   const paper  = document.getElementById('paper');
 
+  // paper 너비 = 뷰어 너비에 맞춤 (최소 860)
   const viewerW = document.getElementById('viewer').clientWidth;
   const paperW  = Math.max(860, viewerW - 40);
   paper.style.width = paperW + 'px';
 
+  // 캔버스 = 이미지 높이 + 추가 여백 높이
   const imgH    = img.offsetHeight;
   const extraH  = 600;
   extra.style.height = extraH + 'px';
@@ -877,9 +678,11 @@ function onImgLoad() {
   canvas.style.width  = paperW + 'px';
   canvas.style.height = (imgH + extraH) + 'px';
 
+  // 흰 배경 채우기 (캔버스 기본은 투명)
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  // 저장된 필기 복원
   const code = currentQuestions[currentIdx];
   if (code && savedStrokes[code]) {
     const tmp = new Image();
@@ -916,6 +719,7 @@ function applyZoom() {
   const paper = document.getElementById('paper');
   paper.style.transform = `scale(${zoom})`;
   paper.style.transformOrigin = 'top left';
+  // 스크롤 영역이 줌된 크기를 감지하도록 wrapper 높이 조정
   const scroll = document.getElementById('viewer-scroll');
   scroll.style.height = '100%';
   document.getElementById('zoom-label').textContent = Math.round(zoom*100) + '%';
@@ -1031,9 +835,12 @@ function saveWithDrawing() {
   out.width  = canvas.width;
   out.height = canvas.height;
   const oc = out.getContext('2d');
+  // 흰 배경
   oc.fillStyle = '#ffffff';
   oc.fillRect(0, 0, out.width, out.height);
+  // 문제 이미지
   oc.drawImage(img, 0, 0, canvas.width, img.naturalHeight * (canvas.width / img.naturalWidth));
+  // 필기
   oc.drawImage(canvas, 0, 0);
   const link = document.createElement('a');
   link.download = `${currentQuestions[currentIdx]}_풀이.png`;
@@ -1053,18 +860,9 @@ document.addEventListener('keydown', e => {
   if (e.key === '0') resetZoom();
   if (e.key === 'p') setTool('pen');
   if (e.key === 'e') setTool('eraser');
-  if (e.key === 'v') openVideo(); // 'v' 키로 해설 영상 열기
 });
 
-// ══════════════════════════════════════════════════
-// 초기화
-// ══════════════════════════════════════════════════
-(async function init() {
-  await loadTimestamps();
-  buildTree();
-  // 문항 리스트에 비디오 표시를 위해 다시 그릴 수 있지만, 최초에는 단원 선택 안 돼 있으므로 괜찮음
-  // 단원 선택 시 selectChapter에서 resolveVideoTimestamp 호출
-})();
+buildTree();
 </script>
 </body>
 </html>
