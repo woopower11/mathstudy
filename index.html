@@ -1,868 +1,1092 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>수능 수학 단원별 기출문제 뷰어</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap');
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>수능 수학 단원별 기출문제 뷰어</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap');
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3350;
+      --accent: #4f8ef7;
+      --text: #e8eaf2;
+      --text-dim: #8890b0;
+      --text-muted: #555a7a;
+      --math1: #4fc3f7;
+      --math2: #81c784;
+      --calc: #ffb74d;
+      --danger: #ef5350;
+      --success: #66bb6a;
+      --sidebar-w: 270px;
+      --list-w: 220px;
+      --toolbar-h: 52px;
+      --panel-transition: 0.22s cubic-bezier(0.4,0,0.2,1);
+    }
 
-  :root {
-    --bg: #0f1117;
-    --surface: #1a1d27;
-    --surface2: #22263a;
-    --border: #2e3350;
-    --accent: #4f8ef7;
-    --text: #e8eaf2;
-    --text-dim: #8890b0;
-    --text-muted: #555a7a;
-    --math1: #4fc3f7;
-    --math2: #81c784;
-    --calc: #ffb74d;
-    --danger: #ef5350;
-    --success: #66bb6a;
-    --sidebar-w: 270px;
-    --list-w: 220px;
-    --toolbar-h: 52px;
-    --panel-transition: 0.22s cubic-bezier(0.4,0,0.2,1);
-  }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100dvh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+    #toolbar {
+      height: var(--toolbar-h);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 0 10px;
+      flex-shrink: 0;
+      z-index: 100;
+      overflow-x: auto;
+    }
+    #toolbar::-webkit-scrollbar { display: none; }
 
-  body {
-    font-family: 'Noto Sans KR', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    height: 100dvh;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-  }
+    .title { font-size: 13px; font-weight: 700; color: var(--accent); white-space: nowrap; margin-right: 4px; }
+    .tb-sep { width: 1px; height: 24px; background: var(--border); margin: 0 3px; flex-shrink: 0; }
 
-  /* ── 툴바 ── */
-  #toolbar {
-    height: var(--toolbar-h);
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding: 0 10px;
-    flex-shrink: 0;
-    z-index: 100;
-    overflow-x: auto;
-  }
-  #toolbar::-webkit-scrollbar { display: none; }
+    .tb-btn {
+      height: 32px;
+      padding: 0 9px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .tb-btn:hover { background: var(--border); }
+    .tb-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .tb-btn.on { background: rgba(79,142,247,0.2); border-color: var(--accent); color: var(--accent); }
+    .tb-btn.danger { border-color: var(--danger); color: var(--danger); }
+    .tb-btn.danger:hover { background: var(--danger); color: #fff; }
+    .tb-btn.save-btn { border-color: var(--success); color: var(--success); }
+    .tb-btn.save-btn:hover { background: var(--success); color: #fff; }
+    .tb-btn.video-btn { border-color: #ff5252; color: #ff5252; }
+    .tb-btn.video-btn:hover { background: #ff5252; color: #fff; }
+    .tb-btn:disabled { opacity: 0.35; pointer-events: none; }
 
-  .title {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--accent);
-    white-space: nowrap;
-    margin-right: 4px;
-  }
-  .tb-sep { width: 1px; height: 24px; background: var(--border); margin: 0 3px; flex-shrink:0; }
+    .color-swatch {
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: transform 0.15s;
+      flex-shrink: 0;
+    }
+    .color-swatch.selected { border-color: #fff; transform: scale(1.3); }
 
-  .tb-btn {
-    height: 32px;
-    padding: 0 9px;
-    border: 1px solid var(--border);
-    background: var(--surface2);
-    color: var(--text);
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 12px;
-    font-family: inherit;
-    display: flex; align-items: center; gap: 4px;
-    transition: all 0.15s;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-  .tb-btn:hover { background: var(--border); }
-  .tb-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .tb-btn.on { background: rgba(79,142,247,0.2); border-color: var(--accent); color: var(--accent); }
-  .tb-btn.danger { border-color: var(--danger); color: var(--danger); }
-  .tb-btn.danger:hover { background: var(--danger); color: #fff; }
-  .tb-btn.save-btn { border-color: var(--success); color: var(--success); }
-  .tb-btn.save-btn:hover { background: var(--success); color: #fff; }
+    #pen-size {
+      width: 64px; height: 26px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+      padding: 0 4px;
+      accent-color: var(--accent);
+      flex-shrink: 0;
+    }
 
-  .color-swatch {
-    width: 18px; height: 18px;
-    border-radius: 50%;
-    border: 2px solid transparent;
-    cursor: pointer;
-    transition: transform 0.15s;
-    flex-shrink: 0;
-  }
-  .color-swatch.selected { border-color: #fff; transform: scale(1.3); }
+    #zoom-label {
+      font-size: 11px;
+      color: var(--text-dim);
+      font-family: 'JetBrains Mono', monospace;
+      min-width: 34px;
+      text-align: center;
+      flex-shrink: 0;
+    }
 
-  #pen-size {
-    width: 64px; height: 26px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    color: var(--text);
-    padding: 0 4px;
-    accent-color: var(--accent);
-    flex-shrink: 0;
-  }
+    #nav-info {
+      font-size: 11px;
+      color: var(--text-dim);
+      font-family: 'JetBrains Mono', monospace;
+      margin-left: auto;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
 
-  #zoom-label {
-    font-size: 11px;
-    color: var(--text-dim);
-    font-family: 'JetBrains Mono', monospace;
-    min-width: 34px;
-    text-align: center;
-    flex-shrink: 0;
-  }
+    #main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+    }
 
-  #nav-info {
-    font-size: 11px;
-    color: var(--text-dim);
-    font-family: 'JetBrains Mono', monospace;
-    margin-left: auto;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
+    .slide-panel {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      overflow: hidden;
+      transition: width var(--panel-transition), opacity var(--panel-transition);
+    }
+    .slide-panel.collapsed {
+      width: 0 !important;
+      opacity: 0;
+      border-right: none;
+      pointer-events: none;
+    }
 
-  /* ── 메인 레이아웃 ── */
-  #main {
-    display: flex;
-    flex: 1;
-    overflow: hidden;
-    position: relative;
-  }
+    #sidebar { width: var(--sidebar-w); }
+    .sidebar-header {
+      padding: 9px 12px 7px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    #tree {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px 0;
+    }
+    #tree::-webkit-scrollbar { width: 4px; }
+    #tree::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-  /* ── 패널 공통 (슬라이드 토글) ── */
-  .slide-panel {
-    background: var(--surface);
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 0;
-    overflow: hidden;
-    transition: width var(--panel-transition), opacity var(--panel-transition);
-  }
-  .slide-panel.collapsed {
-    width: 0 !important;
-    opacity: 0;
-    border-right: none;
-    pointer-events: none;
-  }
+    .subject-node {
+      padding: 7px 12px 5px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      user-select: none;
+      white-space: nowrap;
+    }
+    .subject-node .badge {
+      font-size: 9px;
+      padding: 1px 6px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+    .math1 { color: var(--math1); }
+    .math1 .badge { background: rgba(79,195,247,0.15); color: var(--math1); }
+    .math2 { color: var(--math2); }
+    .math2 .badge { background: rgba(129,199,132,0.15); color: var(--math2); }
+    .calc { color: var(--calc); }
+    .calc .badge { background: rgba(255,183,77,0.15); color: var(--calc); }
 
-  /* ── 사이드바 (단원 트리) ── */
-  #sidebar { width: var(--sidebar-w); }
+    .chapter-node {
+      padding: 6px 12px 6px 22px;
+      font-size: 12px;
+      color: var(--text-dim);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.1s, color 0.1s;
+      white-space: nowrap;
+    }
+    .chapter-node:hover { background: var(--surface2); color: var(--text); }
+    .chapter-node.active { background: rgba(79,142,247,0.15); color: var(--accent); }
+    .chapter-node .cnt {
+      margin-left: auto;
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted);
+      padding-left: 8px;
+    }
+    .subject-chapters { display: none; }
+    .subject-chapters.open { display: block; }
 
-  .sidebar-header {
-    padding: 9px 12px 7px;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    border-bottom: 1px solid var(--border);
-    white-space: nowrap;
-  }
+    #qlist-panel { width: var(--list-w); }
+    .qlist-header {
+      padding: 9px 12px 7px;
+      font-size: 11px;
+      color: var(--text-dim);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #qlist {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px 0;
+    }
+    #qlist::-webkit-scrollbar { width: 4px; }
+    #qlist::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-  #tree {
-    flex: 1;
-    overflow-y: auto;
-    padding: 4px 0;
-  }
-  #tree::-webkit-scrollbar { width: 4px; }
-  #tree::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .q-item {
+      padding: 7px 12px;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-dim);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: background 0.1s, color 0.1s;
+      border-left: 2px solid transparent;
+      white-space: nowrap;
+    }
+    .q-item:hover { background: var(--surface2); color: var(--text); }
+    .q-item.active { background: rgba(79,142,247,0.12); color: var(--accent); border-left-color: var(--accent); }
+    .q-item .idx { color: var(--text-muted); font-size: 10px; min-width: 18px; }
+    .q-item .has-note { color: var(--success); font-size: 10px; margin-left: auto; }
+    .q-item .has-video { color: #ff5252; font-size: 10px; margin-left: 2px; }
 
-  .subject-node {
-    padding: 7px 12px 5px;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    user-select: none;
-    white-space: nowrap;
-  }
-  .subject-node .badge {
-    font-size: 9px; padding: 1px 6px;
-    border-radius: 10px; font-weight: 600;
-  }
-  .math1 { color: var(--math1); }
-  .math1 .badge { background: rgba(79,195,247,0.15); color: var(--math1); }
-  .math2 { color: var(--math2); }
-  .math2 .badge { background: rgba(129,199,132,0.15); color: var(--math2); }
-  .calc  { color: var(--calc); }
-  .calc  .badge { background: rgba(255,183,77,0.15); color: var(--calc); }
+    #viewer {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: #fff;
+      min-width: 0;
+    }
 
-  .chapter-node {
-    padding: 6px 12px 6px 22px;
-    font-size: 12px;
-    color: var(--text-dim);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: background 0.1s, color 0.1s;
-    white-space: nowrap;
-  }
-  .chapter-node:hover { background: var(--surface2); color: var(--text); }
-  .chapter-node.active { background: rgba(79,142,247,0.15); color: var(--accent); }
-  .chapter-node .cnt {
-    margin-left: auto;
-    font-size: 10px;
-    font-family: 'JetBrains Mono', monospace;
-    color: var(--text-muted);
-    padding-left: 8px;
-  }
-  .subject-chapters { display: none; }
-  .subject-chapters.open { display: block; }
+    #viewer-scroll {
+      position: absolute;
+      inset: 0;
+      overflow: auto;
+    }
+    #viewer-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+    #viewer-scroll::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+    #viewer-scroll::-webkit-scrollbar-track { background: #f0f0f0; }
 
-  /* ── 문항 리스트 ── */
-  #qlist-panel { width: var(--list-w); }
+    #paper {
+      position: relative;
+      width: 860px;
+      min-height: 100%;
+      margin: 0 auto;
+      background: #fff;
+      transform-origin: top left;
+    }
 
-  .qlist-header {
-    padding: 9px 12px 7px;
-    font-size: 11px;
-    color: var(--text-dim);
-    border-bottom: 1px solid var(--border);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+    #problem-img {
+      display: block;
+      width: 100%;
+      user-select: none;
+      pointer-events: none;
+      border-bottom: 1.5px dashed #e0e0e0;
+    }
 
-  #qlist {
-    flex: 1;
-    overflow-y: auto;
-    padding: 4px 0;
-  }
-  #qlist::-webkit-scrollbar { width: 4px; }
-  #qlist::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    #extra-space {
+      width: 100%;
+      height: 600px;
+      background: #fff;
+    }
 
-  .q-item {
-    padding: 7px 12px;
-    font-size: 11px;
-    font-family: 'JetBrains Mono', monospace;
-    color: var(--text-dim);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    transition: background 0.1s, color 0.1s;
-    border-left: 2px solid transparent;
-    white-space: nowrap;
-  }
-  .q-item:hover { background: var(--surface2); color: var(--text); }
-  .q-item.active { background: rgba(79,142,247,0.12); color: var(--accent); border-left-color: var(--accent); }
-  .q-item .idx { color: var(--text-muted); font-size: 10px; min-width: 18px; }
-  .q-item .has-note { color: var(--success); font-size: 10px; margin-left: auto; }
+    #draw-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: all;
+      touch-action: none;
+      cursor: crosshair;
+    }
 
-  /* ── 뷰어 영역 ── */
-  #viewer {
-    flex: 1;
-    position: relative;
-    overflow: hidden;
-    background: #fff;       /* 흰 배경 */
-    min-width: 0;
-  }
+    #empty-state {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #aaa;
+      gap: 12px;
+      background: #f8f8f8;
+      pointer-events: none;
+    }
+    #empty-state .icon { font-size: 52px; opacity: 0.35; }
+    #empty-state .msg { font-size: 15px; }
 
-  /* 스크롤 컨테이너 */
-  #viewer-scroll {
-    position: absolute;
-    inset: 0;
-    overflow: auto;
-  }
-  #viewer-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
-  #viewer-scroll::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
-  #viewer-scroll::-webkit-scrollbar-track { background: #f0f0f0; }
+    #overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 199;
+      display: none;
+    }
+    #overlay.show { display: block; }
 
-  /* 흰 종이 영역 — 문제 이미지 + 아래 필기 공간 */
-  #paper {
-    position: relative;
-    width: 860px;           /* 기본 종이 너비 */
-    min-height: 100%;
-    margin: 0 auto;
-    background: #fff;
-    /* 줌은 JS로 transform */
-    transform-origin: top left;
-  }
-
-  /* 문제 이미지 */
-  #problem-img {
-    display: block;
-    width: 100%;
-    user-select: none;
-    pointer-events: none;
-    border-bottom: 1.5px dashed #e0e0e0;  /* 문제/필기공간 구분선 */
-  }
-
-  /* 필기 전용 추가 공간 */
-  #extra-space {
-    width: 100%;
-    height: 600px;          /* 필기 여백 */
-    background: #fff;
-  }
-
-  /* 필기 캔버스 — 이미지 + 여백 전체 덮음 */
-  #draw-canvas {
-    position: absolute;
-    top: 0; left: 0;
-    pointer-events: all;
-    touch-action: none;
-    cursor: crosshair;
-    /* width/height는 JS로 설정 */
-  }
-
-  /* 빈 상태 */
-  #empty-state {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: #aaa;
-    gap: 12px;
-    background: #f8f8f8;
-    pointer-events: none;
-  }
-  #empty-state .icon { font-size: 52px; opacity: 0.35; }
-  #empty-state .msg { font-size: 15px; }
-
-  /* 오버레이 (모바일) */
-  #overlay {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.45);
-    z-index: 199;
-    display: none;
-  }
-  #overlay.show { display: block; }
-</style>
+    /* 모달은 더 이상 사용하지 않으므로 CSS 제거해도 되지만 남겨둠 */
+  </style>
 </head>
 <body>
+  <div id="overlay" onclick="closePanels()"></div>
 
-<div id="overlay" onclick="closePanels()"></div>
+  <!-- 툴바 -->
+  <div id="toolbar">
+    <div class="title">📐 수능 수학</div>
+    <button class="tb-btn on" id="btn-sidebar" onclick="togglePanel('sidebar')" title="단원 목록">☰ 단원</button>
+    <button class="tb-btn on" id="btn-qlist" onclick="togglePanel('qlist-panel')" title="문항 목록">≡ 문항</button>
 
-<!-- 툴바 -->
-<div id="toolbar">
-  <div class="title">📐 수능 수학</div>
+    <div class="tb-sep"></div>
+    <button class="tb-btn active" id="btn-pen" onclick="setTool('pen')">✏️ 펜</button>
+    <button class="tb-btn" id="btn-eraser" onclick="setTool('eraser')">🧹 지우개</button>
+    <button class="tb-btn danger" onclick="clearCanvas()">🗑️ 삭제</button>
 
-  <!-- 패널 토글 -->
-  <button class="tb-btn on" id="btn-sidebar" onclick="togglePanel('sidebar')" title="단원 목록">☰ 단원</button>
-  <button class="tb-btn on" id="btn-qlist"   onclick="togglePanel('qlist-panel')" title="문항 목록">≡ 문항</button>
+    <div class="tb-sep"></div>
+    <div class="color-swatch selected" style="background:#ef5350" onclick="setColor('#ef5350')" title="빨강"></div>
+    <div class="color-swatch" style="background:#ff7043" onclick="setColor('#ff7043')" title="주황"></div>
+    <div class="color-swatch" style="background:#1565c0" onclick="setColor('#1565c0')" title="파랑"></div>
+    <div class="color-swatch" style="background:#2e7d32" onclick="setColor('#2e7d32')" title="초록"></div>
+    <div class="color-swatch" style="background:#000000" onclick="setColor('#000000')" title="검정"></div>
+    <input type="range" id="pen-size" min="1" max="20" value="3" title="굵기" oninput="penSize=+this.value">
 
-  <div class="tb-sep"></div>
+    <div class="tb-sep"></div>
+    <button class="tb-btn" onclick="changeZoom(-0.15)">➖</button>
+    <div id="zoom-label">100%</div>
+    <button class="tb-btn" onclick="changeZoom(0.15)">➕</button>
+    <button class="tb-btn" onclick="resetZoom()">맞춤</button>
 
-  <!-- 필기 도구 -->
-  <button class="tb-btn active" id="btn-pen"    onclick="setTool('pen')">✏️ 펜</button>
-  <button class="tb-btn"        id="btn-eraser" onclick="setTool('eraser')">🧹 지우개</button>
-  <button class="tb-btn danger"                 onclick="clearCanvas()">🗑️ 삭제</button>
+    <div class="tb-sep"></div>
+    <button class="tb-btn" onclick="navigate(-1)">◀</button>
+    <button class="tb-btn" onclick="navigate(1)">▶</button>
 
-  <div class="tb-sep"></div>
+    <div class="tb-sep"></div>
+    <!-- 해설 보기 버튼: 클릭 시 새 탭에서 유튜브 열기 -->
+    <button class="tb-btn video-btn" id="btn-video" disabled onclick="openVideoInNewTab()">▶ 해설</button>
+    <button class="tb-btn save-btn" onclick="saveWithDrawing()">💾 저장</button>
 
-  <!-- 색상 -->
-  <div class="color-swatch selected" style="background:#ef5350" onclick="setColor('#ef5350')" title="빨강"></div>
-  <div class="color-swatch" style="background:#ff7043" onclick="setColor('#ff7043')" title="주황"></div>
-  <div class="color-swatch" style="background:#1565c0" onclick="setColor('#1565c0')" title="파랑"></div>
-  <div class="color-swatch" style="background:#2e7d32" onclick="setColor('#2e7d32')" title="초록"></div>
-  <div class="color-swatch" style="background:#000000" onclick="setColor('#000000')" title="검정"></div>
-  <input type="range" id="pen-size" min="1" max="20" value="3" title="굵기" oninput="penSize=+this.value">
-
-  <div class="tb-sep"></div>
-
-  <!-- 확대/축소 -->
-  <button class="tb-btn" onclick="changeZoom(-0.15)">➖</button>
-  <div id="zoom-label">100%</div>
-  <button class="tb-btn" onclick="changeZoom(0.15)">➕</button>
-  <button class="tb-btn" onclick="resetZoom()">맞춤</button>
-
-  <div class="tb-sep"></div>
-
-  <!-- 이전/다음 -->
-  <button class="tb-btn" onclick="navigate(-1)">◀</button>
-  <button class="tb-btn" onclick="navigate(1)">▶</button>
-
-  <div class="tb-sep"></div>
-
-  <button class="tb-btn save-btn" onclick="saveWithDrawing()">💾 저장</button>
-
-  <div id="nav-info">—</div>
-</div>
-
-<!-- 메인 -->
-<div id="main">
-
-  <!-- 단원 사이드바 -->
-  <div id="sidebar" class="slide-panel">
-    <div class="sidebar-header">단원 목록</div>
-    <div id="tree"></div>
+    <div id="nav-info">—</div>
   </div>
 
-  <!-- 문항 리스트 -->
-  <div id="qlist-panel" class="slide-panel">
-    <div class="qlist-header" id="qlist-title">단원을 선택하세요</div>
-    <div id="qlist"></div>
-  </div>
-
-  <!-- 뷰어 -->
-  <div id="viewer">
-    <div id="empty-state">
-      <div class="icon">📖</div>
-      <div class="msg">단원 → 문제를 선택하세요</div>
+  <!-- 메인 -->
+  <div id="main">
+    <div id="sidebar" class="slide-panel">
+      <div class="sidebar-header">단원 목록</div>
+      <div id="tree"></div>
     </div>
-    <div id="viewer-scroll">
-      <div id="paper" style="display:none">
-        <img id="problem-img" alt="문제" onload="onImgLoad()">
-        <div id="extra-space"></div>
-        <canvas id="draw-canvas"></canvas>
+    <div id="qlist-panel" class="slide-panel">
+      <div class="qlist-header" id="qlist-title">단원을 선택하세요</div>
+      <div id="qlist"></div>
+    </div>
+    <div id="viewer">
+      <div id="empty-state">
+        <div class="icon">📖</div>
+        <div class="msg">단원 → 문제를 선택하세요</div>
+      </div>
+      <div id="viewer-scroll">
+        <div id="paper" style="display:none">
+          <img id="problem-img" alt="문제" onload="onImgLoad()">
+          <div id="extra-space"></div>
+          <canvas id="draw-canvas"></canvas>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<script>
-// ══════════════════════════════════════════════════
-// 데이터베이스
-// ══════════════════════════════════════════════════
-const DB = {
-  "수학Ⅰ": {
-    color: "math1",
-    chapters: {
-      "01 지수 · 거듭제곱근": ["2022-6-모의-1","2022-9-모의-1","2022-수능-1","2023-6-모의-1","2023-9-모평-1","2023-수능-1","2024-6-모의-1","2024-9-모평-1","2024-수능-1","2025-6-모의-1","2025-9-모평-1","2025-수능-1","2026-6-모의-1","2026-9-모평-1"],
-      "01 지수 · 지수의 확장": ["2022-수능-1","2023-9-모평-1","2024-9-모평-1","2025-수능-1","2026-수능-1"],
-      "02 로그 · 뜻과 성질": ["2022-6-모의-16","2022-9-모의-16","2022-수능-16","2023-6-모의-16","2023-9-모평-7","2023-수능-16","2024-6-모의-7","2024-9-모평-7","2024-수능-9","2025-6-모의-16","2025-9-모평-8","2025-수능-8","2026-6-모의-16","2026-9-모평-8"],
-      "02 로그 · 상용로그": ["2022-수능-16","2023-6-모의-21","2024-6-모의-16"],
-      "03 지수함수 · 그래프": ["2022-6-모의-10","2022-9-모의-10","2022-수능-10","2023-6-모의-13","2023-9-모평-11","2023-수능-13","2024-6-모의-12","2025-6-모의-12","2026-6-모의-10","2026-9-모평-12"],
-      "03 지수함수 · 방·부등식": ["2022-6-모의-10","2023-9-모평-11","2024-6-모의-16","2025-6-모의-14"],
-      "04 로그함수 · 그래프": ["2022-6-모의-10","2022-9-모의-21","2022-수능-9","2023-6-모의-21","2024-6-모의-7","2024-9-모평-21","2025-6-모의-14","2025-9-모평-14","2026-6-모의-10","2026-9-모평-22"],
-      "05 로그 방정식": ["2022-6-모의-16","2022-9-모의-16","2022-수능-16","2023-6-모의-16","2023-9-모평-16","2023-수능-16","2024-9-모평-16","2025-6-모의-16","2025-9-모평-16","2025-수능-16","2026-6-모의-16"],
-      "05 로그 부등식": ["2023-6-모의-21","2024-6-모의-16","2025-6-모의-14"],
-      "06 삼각함수 · 정의": ["2022-6-모의-3","2022-9-모의-6","2022-수능-7","2023-6-모의-3","2023-9-모평-3","2023-수능-5","2024-6-모의-6","2024-9-모평-3","2024-수능-3","2025-6-모의-6","2025-9-모평-6","2025-수능-6","2026-6-모의-8","2026-9-모평-6"],
-      "07 삼각함수 · 그래프": ["2022-6-모의-10","2022-9-모의-10","2022-수능-11","2023-6-모의-7","2023-9-모평-9","2023-수능-9","2024-6-모의-19","2024-9-모평-9","2024-수능-19","2025-6-모의-20","2025-9-모평-20","2025-수능-10","2026-6-모의-6","2026-9-모평-14"],
-      "08 사인·코사인법칙": ["2022-6-모의-12","2022-9-모의-12","2022-수능-15","2023-6-모의-10","2023-9-모평-13","2023-수능-11","2024-6-모의-13","2024-9-모평-20","2024-수능-13","2025-6-모의-10","2025-9-모평-10","2025-수능-14","2026-6-모의-14","2026-9-모평-20"],
-      "09 등차수열": ["2022-6-모의-7","2022-9-모의-13","2022-수능-3","2023-6-모의-12","2023-9-모평-5","2023-수능-7","2024-6-모의-12","2024-9-모평-21","2024-수능-11","2025-6-모의-12","2025-9-모평-12","2025-수능-3","2026-6-모의-12","2026-9-모평-18"],
-      "10 등비수열": ["2022-6-모의-18","2022-9-모의-3","2022-수능-12","2023-6-모의-5","2023-9-모평-5","2023-수능-3","2024-6-모의-6","2024-9-모평-5","2024-수능-6","2025-6-모의-8","2025-9-모평-3","2025-수능-3","2026-9-모평-10"],
-      "11 Σ와 여러가지 수열": ["2022-6-모의-3","2022-9-모의-18","2022-수능-18","2023-6-모의-18","2023-9-모평-18","2023-수능-18","2024-6-모의-3","2024-9-모평-17","2024-수능-18","2025-6-모의-3","2025-9-모평-18","2026-6-모의-3","2026-9-모평-3"],
-      "12 수학적 귀납법": ["2022-6-모의-9","2022-9-모의-15","2022-수능-5","2023-6-모의-15","2023-9-모평-15","2023-수능-15","2024-6-모의-15","2024-9-모평-12","2025-6-모의-22","2025-9-모평-22","2025-수능-22","2026-6-모의-12"],
-    }
-  },
-  "수학Ⅱ": {
-    color: "math2",
-    chapters: {
-      "01 함수의 극한 · 계산": ["2022-6-모의-4","2022-9-모의-4","2022-수능-4","2023-6-모의-4","2023-9-모평-4","2023-수능-2","2024-6-모의-4","2024-9-모평-4","2024-수능-4","2025-6-모의-4","2025-9-모평-4","2026-6-모의-4","2026-9-모평-4"],
-      "01 함수의 극한 · 성질": ["2022-9-모평-13","2023-9-모평-14","2024-6-모의-14","2025-6-모의-15","2026-6-모의-21"],
-      "02 함수의 연속": ["2022-6-모의-8","2022-9-모의-4","2022-수능-4","2023-6-모의-6","2023-9-모평-4","2023-수능-4","2024-6-모의-4","2024-9-모평-7","2024-수능-4","2025-6-모의-9","2025-9-모평-7","2025-수능-4","2026-6-모의-4","2026-9-모평-4"],
-      "02 중간값 정리": ["2023-6-모의-14","2024-9-모평-14","2025-6-모의-15"],
-      "03 미분계수": ["2022-6-모의-2","2022-9-모의-2","2022-수능-2","2023-6-모의-2","2023-9-모평-2","2023-수능-2","2024-6-모의-2","2024-9-모평-2","2024-수능-2","2025-6-모의-2","2025-9-모평-2","2025-수능-2","2026-6-모의-2","2026-9-모평-2"],
-      "03 도함수": ["2022-6-모의-2","2022-9-모의-2","2022-수능-2","2023-6-모의-2","2024-6-모의-2","2024-9-모평-2","2025-6-모의-2","2026-6-모의-2"],
-      "04 접선의 방정식": ["2022-6-모의-5","2022-9-모의-8","2022-수능-10","2023-6-모의-8","2023-9-모평-8","2023-수능-8","2024-6-모의-5","2024-9-모평-10","2024-수능-20","2025-6-모의-5","2025-9-모평-5","2026-6-모의-7","2026-9-모평-7"],
-      "04 평균값 정리": ["2023-6-모의-8","2023-수능-22","2024-9-모평-15","2025-6-모의-11"],
-      "05 극대·극소 · 판정": ["2022-6-모의-5","2022-9-모의-5","2022-수능-6","2023-6-모의-6","2023-9-모평-6","2023-수능-6","2024-6-모의-6","2024-9-모평-6","2024-수능-7","2025-6-모의-7","2025-9-모평-19","2025-수능-7","2026-6-모의-6","2026-9-모평-6"],
-      "05 함수의 그래프": ["2022-9-모의-14","2023-6-모의-14","2023-9-모평-22","2024-6-모의-22","2025-6-모의-21","2025-수능-13","2026-6-모의-13"],
-      "06 최대·최소": ["2022-6-모의-17","2022-9-모의-19","2022-수능-19","2023-6-모의-19","2023-9-모평-19","2024-6-모의-20","2024-9-모평-21","2024-수능-21","2025-6-모의-19","2026-수능-19"],
-      "06 근의 개수": ["2022-6-모의-14","2022-9-모의-20","2022-수능-20","2023-6-모의-21","2023-9-모평-20","2024-6-모의-21","2024-9-모평-22","2024-수능-22","2025-6-모의-21","2026-6-모의-21"],
-      "06 속도·가속도": ["2022-6-모의-19","2022-9-모의-9","2022-수능-14","2023-6-모의-11","2023-9-모평-11","2023-수능-20","2024-6-모의-14","2024-9-모평-11","2024-수능-10","2025-6-모의-19","2025-수능-11","2026-6-모의-11","2026-9-모평-11"],
-      "07 부정적분": ["2022-6-모의-2","2022-9-모의-17","2022-수능-17","2023-6-모의-17","2023-9-모평-17","2023-수능-17","2024-6-모의-17","2024-9-모평-17","2024-수능-17","2025-6-모의-17","2025-9-모평-17","2025-수능-17","2026-6-모의-17","2026-9-모평-17"],
-      "08 정적분": ["2022-6-모의-6","2022-9-모의-6","2022-수능-8","2023-6-모의-10","2023-9-모평-10","2023-수능-10","2024-6-모의-10","2024-9-모평-19","2024-수능-8","2025-6-모의-13","2025-9-모평-13","2025-수능-7","2026-6-모의-5","2026-9-모평-5"],
-      "09 정적분으로 정의된 함수": ["2022-9-모평-11","2023-9-모평-22","2024-9-모평-22","2025-6-모의-15","2025-9-모평-15","2025-수능-7"],
-      "10 정적분 활용 · 넓이": ["2022-6-모의-6","2022-9-모의-6","2022-수능-8","2023-6-모의-20","2023-9-모평-20","2023-수능-10","2024-6-모의-13","2024-9-모평-19","2024-수능-12","2025-6-모의-13","2025-9-모평-13","2026-9-모평-7"],
-      "10 정적분 활용 · 속도거리": ["2022-6-모의-19","2022-9-모의-9","2022-수능-11","2023-6-모의-11","2023-9-모평-11","2023-수능-20","2024-6-모의-11","2024-9-모평-11","2024-수능-10","2025-6-모의-19","2026-6-모의-11"],
-    }
-  },
-  "미적분": {
-    color: "calc",
-    chapters: {
-      "01 수열의 극한 · 수렴발산": ["2022-9-모평-23","2023-6-모평-23","2023-9-모평-23","2024-6-모평-23","2025-6-모평-23","2026-9-모평-23"],
-      "01 수열의 극한 · 계산": ["2022-6-모평-23","2022-9-모평-23","2022-수능-23","2023-6-모평-23","2023-9-모평-23","2023-수능-23","2024-6-모평-23","2024-9-모평-23","2024-수능-23","2025-6-모평-23","2025-9-모평-25","2026-9-모평-25"],
-      "01 등비수열의 수렴": ["2022-6-모평-29","2022-9-모평-29","2023-6-모평-29","2024-6-모평-29","2025-6-모평-29"],
-      "02 급수 · 무한급수": ["2022-9-모평-25","2023-9-모평-25","2024-9-모평-25","2025-6-모평-25","2026-6-모평-25"],
-      "02 등비급수": ["2022-6-모평-26","2022-9-모평-27","2022-수능-25","2023-6-모평-26","2023-9-모평-27","2023-수능-27","2024-6-모평-30","2024-9-모평-26","2024-수능-29","2025-6-모평-25","2025-9-모평-29","2025-수능-29","2026-6-모평-29"],
-      "02 등비급수 활용": ["2022-6-모평-26","2022-9-모평-27","2023-6-모평-26","2023-9-모평-27","2024-6-모평-26","2024-9-모평-27"],
-      "03 지수·로그함수 극한": ["2022-6-모평-23","2022-9-모평-23","2023-6-모평-23","2023-9-모평-23","2024-6-모평-25","2024-9-모평-23","2024-수능-23","2025-6-모평-26","2025-9-모평-23","2026-9-모평-23"],
-      "03 지수·로그함수 미분": ["2022-6-모평-27","2022-9-모평-29","2022-수능-27","2023-6-모평-27","2023-9-모평-28","2023-수능-29","2024-6-모평-27","2024-9-모평-29","2025-6-모평-27","2026-9-모평-27"],
-      "04 삼각함수 덧셈정리": ["2022-9-모평-24","2023-9-모평-24","2024-6-모평-28","2024-9-모평-24","2025-6-모평-24"],
-      "04 삼각함수 합성": ["2023-6-모평-28","2024-6-모평-28"],
-      "05 삼각함수 극한": ["2022-6-모평-28","2022-9-모평-23","2023-6-모평-23","2023-9-모평-23","2024-6-모평-27","2024-9-모평-23","2024-수능-23","2025-6-모평-23","2025-9-모평-23","2025-수능-23","2026-6-모평-23"],
-      "05 삼각함수 미분": ["2022-6-모평-27","2022-9-모평-28","2022-수능-28","2023-6-모평-27","2023-9-모평-28","2024-6-모평-27","2024-9-모평-30","2024-수능-30","2025-6-모평-30","2026-6-모평-27"],
-      "06 합성함수 미분": ["2022-6-모평-24","2022-9-모평-24","2022-수능-24","2023-6-모평-24","2023-9-모평-24","2023-수능-30","2024-6-모평-24","2024-9-모평-24","2024-수능-24","2025-6-모평-24","2025-9-모평-27","2026-6-모평-28"],
-      "06 매개변수 미분": ["2022-6-모평-24","2022-9-모평-25","2022-수능-27","2023-6-모평-24","2023-9-모평-24","2024-6-모평-24","2024-9-모평-24","2024-수능-24","2025-6-모평-24","2026-6-모평-24","2026-수능-27"],
-      "06 음함수 미분": ["2022-6-모평-24","2022-9-모평-24","2023-6-모평-24","2023-9-모평-24","2024-6-모평-24","2024-9-모평-24","2025-6-모평-24","2026-6-모평-24"],
-      "06 역함수 미분": ["2022-6-모평-24","2022-9-모평-27","2022-수능-30","2023-6-모평-25","2023-9-모평-28","2023-수능-29","2024-6-모평-25","2024-9-모평-28","2024-수능-25","2025-6-모평-28","2026-6-모평-26","2026-수능-27"],
-      "07 접선의 방정식": ["2022-6-모평-25","2022-9-모평-25","2022-수능-25","2023-6-모평-30","2023-9-모평-28","2024-6-모평-27","2024-9-모평-27","2024-수능-27","2025-6-모평-27","2026-6-모평-27"],
-      "08 극대·극소 · 판정": ["2022-6-모평-29","2022-9-모평-29","2022-수능-28","2023-6-모평-30","2023-9-모평-30","2023-수능-30","2024-6-모평-30","2024-9-모평-30","2024-수능-30","2025-6-모평-30","2026-6-모평-30"],
-      "08 변곡점": ["2023-9-모평-30","2024-9-모평-30","2025-6-모평-29"],
-      "09 최적화": ["2023-9-모평-28","2024-6-모평-28","2024-9-모평-28","2024-수능-28","2025-6-모평-27"],
-      "09 근의 개수": ["2022-6-모평-30","2022-9-모평-30","2022-수능-30","2023-6-모평-30","2023-9-모평-30","2024-6-모평-30","2024-9-모평-30","2024-수능-30","2025-6-모평-30","2026-6-모평-30"],
-      "10 치환적분": ["2022-9-모평-26","2023-6-모평-26","2023-9-모평-24","2024-6-모평-26","2024-9-모평-24","2024-수능-26","2025-6-모평-26","2025-9-모평-26","2026-9-모평-24"],
-      "10 부분적분": ["2022-6-모평-24","2023-9-모평-24","2024-9-모평-24","2024-수능-25","2025-6-모평-24","2026-9-모평-24"],
-      "11 정적분 기법": ["2022-9-모평-26","2023-6-모평-26","2023-9-모평-24","2024-6-모평-26","2024-9-모평-24","2024-수능-26","2025-6-모평-26","2025-9-모평-26","2026-9-모평-24"],
-      "11 정적분으로 정의된 함수": ["2022-6-모평-28","2023-6-모평-28","2024-6-모평-28","2025-6-모평-28","2026-6-모평-28"],
-      "12 넓이": ["2022-9-모평-26","2022-수능-26","2023-6-모평-26","2023-9-모평-26","2023-수능-26","2024-6-모평-26","2024-9-모평-26","2024-수능-26","2025-6-모평-26","2025-9-모평-26","2026-9-모평-26"],
-      "12 부피": ["2022-9-모평-26","2023-9-모평-26","2023-수능-26","2024-6-모평-26","2024-9-모평-26","2024-수능-26","2025-9-모평-26","2026-수능-26"],
-      "12 속도·거리": ["2022-6-모평-11","2022-9-모평-11","2023-6-모평-11","2024-6-모평-11","2024-9-모평-11","2024-수능-10","2025-6-모평-19","2026-6-모평-11"],
-    }
-  }
-};
-
-// ══════════════════════════════════════════════════
-// 파일 경로 변환
-// ══════════════════════════════════════════════════
-function codeToPath(code) {
-  const parts = code.split('-');
-  const year  = parts[0];
-  const num   = parseInt(parts[parts.length - 1]);
-  const mid   = parts.slice(1, -1).join('-');
-
-  let dir;
-  if (mid === '수능') dir = `${year}년도_수능`;
-  else if (mid.includes('6')) dir = `${year}년도_6월모의고사`;
-  else dir = `${year}년도_9월모의고사`;
-
-  const numStr   = String(num).padStart(2, '0');
-  const calcPart = num >= 23 ? '_미적분' : '';
-  return `크롭결과/${dir}/${dir}${calcPart}_${numStr}번.png`;
-}
-
-// ══════════════════════════════════════════════════
-// 상태
-// ══════════════════════════════════════════════════
-let currentQuestions = [];
-let currentIdx = -1;
-let zoom = 1;
-let tool = 'pen';
-let penColor = '#ef5350';
-let penSize = 3;
-let drawing = false;
-let lastX = 0, lastY = 0;
-const savedStrokes = {};
-
-// 패널 상태
-const panelState = { sidebar: true, 'qlist-panel': true };
-
-// ══════════════════════════════════════════════════
-// 패널 토글
-// ══════════════════════════════════════════════════
-function togglePanel(id) {
-  panelState[id] = !panelState[id];
-  const el = document.getElementById(id);
-  el.classList.toggle('collapsed', !panelState[id]);
-  const btnId = id === 'sidebar' ? 'btn-sidebar' : 'btn-qlist';
-  document.getElementById(btnId).classList.toggle('on', panelState[id]);
-}
-function closePanels() {
-  ['sidebar','qlist-panel'].forEach(id => {
-    panelState[id] = false;
-    document.getElementById(id).classList.add('collapsed');
-  });
-  document.getElementById('btn-sidebar').classList.remove('on');
-  document.getElementById('btn-qlist').classList.remove('on');
-  document.getElementById('overlay').classList.remove('show');
-}
-
-// ══════════════════════════════════════════════════
-// 트리 렌더링
-// ══════════════════════════════════════════════════
-function buildTree() {
-  const tree = document.getElementById('tree');
-  tree.innerHTML = '';
-  Object.entries(DB).forEach(([subject, data]) => {
-    const totalQ = Object.values(data.chapters).reduce((s,a) => s+a.length, 0);
-    const subEl = document.createElement('div');
-    subEl.className = `subject-node ${data.color}`;
-    subEl.innerHTML = `<span class="arrow">▾</span> ${subject} <span class="badge">${totalQ}</span>`;
-
-    const chapList = document.createElement('div');
-    chapList.className = 'subject-chapters open';
-
-    Object.entries(data.chapters).forEach(([name, questions]) => {
-      const chapEl = document.createElement('div');
-      chapEl.className = 'chapter-node';
-      chapEl.innerHTML = `${name}<span class="cnt">${questions.length}</span>`;
-      chapEl.addEventListener('click', () => selectChapter(chapEl, name, questions));
-      chapList.appendChild(chapEl);
-    });
-
-    subEl.addEventListener('click', () => {
-      chapList.classList.toggle('open');
-      subEl.querySelector('.arrow').textContent = chapList.classList.contains('open') ? '▾' : '▸';
-    });
-
-    tree.appendChild(subEl);
-    tree.appendChild(chapList);
-  });
-}
-
-// ══════════════════════════════════════════════════
-// 단원 선택
-// ══════════════════════════════════════════════════
-let activeChapEl = null;
-function selectChapter(el, name, questions) {
-  if (activeChapEl) activeChapEl.classList.remove('active');
-  activeChapEl = el;
-  el.classList.add('active');
-
-  const sorted = [...questions].sort((a, b) => {
-    const parse = c => {
-      const p = c.split('-');
-      const y = parseInt(p[0]);
-      const n = parseInt(p[p.length-1]);
-      const m = p.slice(1,-1).join('');
-      const t = m.includes('6') ? 1 : m.includes('9') ? 2 : 3;
-      return [y, t, n];
+  <script>
+    // ══════════════════════════════════════════════════
+    // 데이터베이스 (단원-문제)
+    // ══════════════════════════════════════════════════
+    const DB = {
+      "수학Ⅰ": {
+        color: "math1",
+        chapters: {
+          "01 지수 · 거듭제곱근": ["2022-6-모의-1","2022-9-모의-1","2022-수능-1","2023-6-모의-1","2023-9-모평-1","2023-수능-1","2024-6-모의-1","2024-9-모평-1","2024-수능-1","2025-6-모의-1","2025-9-모평-1","2025-수능-1","2026-6-모의-1","2026-9-모평-1"],
+          "01 지수 · 지수의 확장": ["2022-수능-1","2023-9-모평-1","2024-9-모평-1","2025-수능-1","2026-수능-1"],
+          "02 로그 · 뜻과 성질": ["2022-6-모의-16","2022-9-모의-16","2022-수능-16","2023-6-모의-16","2023-9-모평-7","2023-수능-16","2024-6-모의-7","2024-9-모평-7","2024-수능-9","2025-6-모의-16","2025-9-모평-8","2025-수능-8","2026-6-모의-16","2026-9-모평-8"],
+          "02 로그 · 상용로그": ["2022-수능-16","2023-6-모의-21","2024-6-모의-16"],
+          "03 지수함수 · 그래프": ["2022-6-모의-10","2022-9-모의-10","2022-수능-10","2023-6-모의-13","2023-9-모평-11","2023-수능-13","2024-6-모의-12","2025-6-모의-12","2026-6-모의-10","2026-9-모평-12"],
+          "03 지수함수 · 방·부등식": ["2022-6-모의-10","2023-9-모평-11","2024-6-모의-16","2025-6-모의-14"],
+          "04 로그함수 · 그래프": ["2022-6-모의-10","2022-9-모의-21","2022-수능-9","2023-6-모의-21","2024-6-모의-7","2024-9-모평-21","2025-6-모의-14","2025-9-모평-14","2026-6-모의-10","2026-9-모평-22"],
+          "05 로그 방정식": ["2022-6-모의-16","2022-9-모의-16","2022-수능-16","2023-6-모의-16","2023-9-모평-16","2023-수능-16","2024-9-모평-16","2025-6-모의-16","2025-9-모평-16","2025-수능-16","2026-6-모의-16"],
+          "05 로그 부등식": ["2023-6-모의-21","2024-6-모의-16","2025-6-모의-14"],
+          "06 삼각함수 · 정의": ["2022-6-모의-3","2022-9-모의-6","2022-수능-7","2023-6-모의-3","2023-9-모평-3","2023-수능-5","2024-6-모의-6","2024-9-모평-3","2024-수능-3","2025-6-모의-6","2025-9-모평-6","2025-수능-6","2026-6-모의-8","2026-9-모평-6"],
+          "07 삼각함수 · 그래프": ["2022-6-모의-10","2022-9-모의-10","2022-수능-11","2023-6-모의-7","2023-9-모평-9","2023-수능-9","2024-6-모의-19","2024-9-모평-9","2024-수능-19","2025-6-모의-20","2025-9-모평-20","2025-수능-10","2026-6-모의-6","2026-9-모평-14"],
+          "08 사인·코사인법칙": ["2022-6-모의-12","2022-9-모의-12","2022-수능-15","2023-6-모의-10","2023-9-모평-13","2023-수능-11","2024-6-모의-13","2024-9-모평-20","2024-수능-13","2025-6-모의-10","2025-9-모평-10","2025-수능-14","2026-6-모의-14","2026-9-모평-20"],
+          "09 등차수열": ["2022-6-모의-7","2022-9-모의-13","2022-수능-3","2023-6-모의-12","2023-9-모평-5","2023-수능-7","2024-6-모의-12","2024-9-모평-21","2024-수능-11","2025-6-모의-12","2025-9-모평-12","2025-수능-3","2026-6-모의-12","2026-9-모평-18"],
+          "10 등비수열": ["2022-6-모의-18","2022-9-모의-3","2022-수능-12","2023-6-모의-5","2023-9-모평-5","2023-수능-3","2024-6-모의-6","2024-9-모평-5","2024-수능-6","2025-6-모의-8","2025-9-모평-3","2025-수능-3","2026-9-모평-10"],
+          "11 Σ와 여러가지 수열": ["2022-6-모의-3","2022-9-모의-18","2022-수능-18","2023-6-모의-18","2023-9-모평-18","2023-수능-18","2024-6-모의-3","2024-9-모평-17","2024-수능-18","2025-6-모의-3","2025-9-모평-18","2026-6-모의-3","2026-9-모평-3"],
+          "12 수학적 귀납법": ["2022-6-모의-9","2022-9-모의-15","2022-수능-5","2023-6-모의-15","2023-9-모평-15","2023-수능-15","2024-6-모의-15","2024-9-모평-12","2025-6-모의-22","2025-9-모평-22","2025-수능-22","2026-6-모의-12"],
+        }
+      },
+      "수학Ⅱ": {
+        color: "math2",
+        chapters: {
+          "01 함수의 극한 · 계산": ["2022-6-모의-4","2022-9-모의-4","2022-수능-4","2023-6-모의-4","2023-9-모평-4","2023-수능-2","2024-6-모의-4","2024-9-모평-4","2024-수능-4","2025-6-모의-4","2025-9-모평-4","2026-6-모의-4","2026-9-모평-4"],
+          "01 함수의 극한 · 성질": ["2022-9-모평-13","2023-9-모평-14","2024-6-모의-14","2025-6-모의-15","2026-6-모의-21"],
+          "02 함수의 연속": ["2022-6-모의-8","2022-9-모의-4","2022-수능-4","2023-6-모의-6","2023-9-모평-4","2023-수능-4","2024-6-모의-4","2024-9-모평-7","2024-수능-4","2025-6-모의-9","2025-9-모평-7","2025-수능-4","2026-6-모의-4","2026-9-모평-4"],
+          "02 중간값 정리": ["2023-6-모의-14","2024-9-모평-14","2025-6-모의-15"],
+          "03 미분계수": ["2022-6-모의-2","2022-9-모의-2","2022-수능-2","2023-6-모의-2","2023-9-모평-2","2023-수능-2","2024-6-모의-2","2024-9-모평-2","2024-수능-2","2025-6-모의-2","2025-9-모평-2","2025-수능-2","2026-6-모의-2","2026-9-모평-2"],
+          "03 도함수": ["2022-6-모의-2","2022-9-모의-2","2022-수능-2","2023-6-모의-2","2024-6-모의-2","2024-9-모평-2","2025-6-모의-2","2026-6-모의-2"],
+          "04 접선의 방정식": ["2022-6-모의-5","2022-9-모의-8","2022-수능-10","2023-6-모의-8","2023-9-모평-8","2023-수능-8","2024-6-모의-5","2024-9-모평-10","2024-수능-20","2025-6-모의-5","2025-9-모평-5","2026-6-모의-7","2026-9-모평-7"],
+          "04 평균값 정리": ["2023-6-모의-8","2023-수능-22","2024-9-모평-15","2025-6-모의-11"],
+          "05 극대·극소 · 판정": ["2022-6-모의-5","2022-9-모의-5","2022-수능-6","2023-6-모의-6","2023-9-모평-6","2023-수능-6","2024-6-모의-6","2024-9-모평-6","2024-수능-7","2025-6-모의-7","2025-9-모평-19","2025-수능-7","2026-6-모의-6","2026-9-모평-6"],
+          "05 함수의 그래프": ["2022-9-모의-14","2023-6-모의-14","2023-9-모평-22","2024-6-모의-22","2025-6-모의-21","2025-수능-13","2026-6-모의-13"],
+          "06 최대·최소": ["2022-6-모의-17","2022-9-모의-19","2022-수능-19","2023-6-모의-19","2023-9-모평-19","2024-6-모의-20","2024-9-모평-21","2024-수능-21","2025-6-모의-19","2026-수능-19"],
+          "06 근의 개수": ["2022-6-모의-14","2022-9-모의-20","2022-수능-20","2023-6-모의-21","2023-9-모평-20","2024-6-모의-21","2024-9-모평-22","2024-수능-22","2025-6-모의-21","2026-6-모의-21"],
+          "06 속도·가속도": ["2022-6-모의-19","2022-9-모의-9","2022-수능-14","2023-6-모의-11","2023-9-모평-11","2023-수능-20","2024-6-모의-14","2024-9-모평-11","2024-수능-10","2025-6-모의-19","2025-수능-11","2026-6-모의-11","2026-9-모평-11"],
+          "07 부정적분": ["2022-6-모의-2","2022-9-모의-17","2022-수능-17","2023-6-모의-17","2023-9-모평-17","2023-수능-17","2024-6-모의-17","2024-9-모평-17","2024-수능-17","2025-6-모의-17","2025-9-모평-17","2025-수능-17","2026-6-모의-17","2026-9-모평-17"],
+          "08 정적분": ["2022-6-모의-6","2022-9-모의-6","2022-수능-8","2023-6-모의-10","2023-9-모평-10","2023-수능-10","2024-6-모의-10","2024-9-모평-19","2024-수능-8","2025-6-모의-13","2025-9-모평-13","2025-수능-7","2026-6-모의-5","2026-9-모평-5"],
+          "09 정적분으로 정의된 함수": ["2022-9-모평-11","2023-9-모평-22","2024-9-모평-22","2025-6-모의-15","2025-9-모평-15","2025-수능-7"],
+          "10 정적분 활용 · 넓이": ["2022-6-모의-6","2022-9-모의-6","2022-수능-8","2023-6-모의-20","2023-9-모평-20","2023-수능-10","2024-6-모의-13","2024-9-모평-19","2024-수능-12","2025-6-모의-13","2025-9-모평-13","2026-9-모평-7"],
+          "10 정적분 활용 · 속도거리": ["2022-6-모의-19","2022-9-모의-9","2022-수능-11","2023-6-모의-11","2023-9-모평-11","2023-수능-20","2024-6-모의-11","2024-9-모평-11","2024-수능-10","2025-6-모의-19","2026-6-모의-11"],
+        }
+      },
+      "미적분": {
+        color: "calc",
+        chapters: {
+          "01 수열의 극한 · 수렴발산": ["2022-9-모평-23","2023-6-모평-23","2023-9-모평-23","2024-6-모평-23","2025-6-모평-23","2026-9-모평-23"],
+          "01 수열의 극한 · 계산": ["2022-6-모평-23","2022-9-모평-23","2022-수능-23","2023-6-모평-23","2023-9-모평-23","2023-수능-23","2024-6-모평-23","2024-9-모평-23","2024-수능-23","2025-6-모평-23","2025-9-모평-25","2026-9-모평-25"],
+          "01 등비수열의 수렴": ["2022-6-모평-29","2022-9-모평-29","2023-6-모평-29","2024-6-모평-29","2025-6-모평-29"],
+          "02 급수 · 무한급수": ["2022-9-모평-25","2023-9-모평-25","2024-9-모평-25","2025-6-모평-25","2026-6-모평-25"],
+          "02 등비급수": ["2022-6-모평-26","2022-9-모평-27","2022-수능-25","2023-6-모평-26","2023-9-모평-27","2023-수능-27","2024-6-모평-30","2024-9-모평-26","2024-수능-29","2025-6-모평-25","2025-9-모평-29","2025-수능-29","2026-6-모평-29"],
+          "02 등비급수 활용": ["2022-6-모평-26","2022-9-모평-27","2023-6-모평-26","2023-9-모평-27","2024-6-모평-26","2024-9-모평-27"],
+          "03 지수·로그함수 극한": ["2022-6-모평-23","2022-9-모평-23","2023-6-모평-23","2023-9-모평-23","2024-6-모평-25","2024-9-모평-23","2024-수능-23","2025-6-모평-26","2025-9-모평-23","2026-9-모평-23"],
+          "03 지수·로그함수 미분": ["2022-6-모평-27","2022-9-모평-29","2022-수능-27","2023-6-모평-27","2023-9-모평-28","2023-수능-29","2024-6-모평-27","2024-9-모평-29","2025-6-모평-27","2026-9-모평-27"],
+          "04 삼각함수 덧셈정리": ["2022-9-모평-24","2023-9-모평-24","2024-6-모평-28","2024-9-모평-24","2025-6-모평-24"],
+          "04 삼각함수 합성": ["2023-6-모평-28","2024-6-모평-28"],
+          "05 삼각함수 극한": ["2022-6-모평-28","2022-9-모평-23","2023-6-모평-23","2023-9-모평-23","2024-6-모평-27","2024-9-모평-23","2024-수능-23","2025-6-모평-23","2025-9-모평-23","2025-수능-23","2026-6-모평-23"],
+          "05 삼각함수 미분": ["2022-6-모평-27","2022-9-모평-28","2022-수능-28","2023-6-모평-27","2023-9-모평-28","2024-6-모평-27","2024-9-모평-30","2024-수능-30","2025-6-모평-30","2026-6-모평-27"],
+          "06 합성함수 미분": ["2022-6-모평-24","2022-9-모평-24","2022-수능-24","2023-6-모평-24","2023-9-모평-24","2023-수능-30","2024-6-모평-24","2024-9-모평-24","2024-수능-24","2025-6-모평-24","2025-9-모평-27","2026-6-모평-28"],
+          "06 매개변수 미분": ["2022-6-모평-24","2022-9-모평-25","2022-수능-27","2023-6-모평-24","2023-9-모평-24","2024-6-모평-24","2024-9-모평-24","2024-수능-24","2025-6-모평-24","2026-6-모평-24","2026-수능-27"],
+          "06 음함수 미분": ["2022-6-모평-24","2022-9-모평-24","2023-6-모평-24","2023-9-모평-24","2024-6-모평-24","2024-9-모평-24","2025-6-모평-24","2026-6-모평-24"],
+          "06 역함수 미분": ["2022-6-모평-24","2022-9-모평-27","2022-수능-30","2023-6-모평-25","2023-9-모평-28","2023-수능-29","2024-6-모평-25","2024-9-모평-28","2024-수능-25","2025-6-모평-28","2026-6-모평-26","2026-수능-27"],
+          "07 접선의 방정식": ["2022-6-모평-25","2022-9-모평-25","2022-수능-25","2023-6-모평-30","2023-9-모평-28","2024-6-모평-27","2024-9-모평-27","2024-수능-27","2025-6-모평-27","2026-6-모평-27"],
+          "08 극대·극소 · 판정": ["2022-6-모평-29","2022-9-모평-29","2022-수능-28","2023-6-모평-30","2023-9-모평-30","2023-수능-30","2024-6-모평-30","2024-9-모평-30","2024-수능-30","2025-6-모평-30","2026-6-모평-30"],
+          "08 변곡점": ["2023-9-모평-30","2024-9-모평-30","2025-6-모평-29"],
+          "09 최적화": ["2023-9-모평-28","2024-6-모평-28","2024-9-모평-28","2024-수능-28","2025-6-모평-27"],
+          "09 근의 개수": ["2022-6-모평-30","2022-9-모평-30","2022-수능-30","2023-6-모평-30","2023-9-모평-30","2024-6-모평-30","2024-9-모평-30","2024-수능-30","2025-6-모평-30","2026-6-모평-30"],
+          "10 치환적분": ["2022-9-모평-26","2023-6-모평-26","2023-9-모평-24","2024-6-모평-26","2024-9-모평-24","2024-수능-26","2025-6-모평-26","2025-9-모평-26","2026-9-모평-24"],
+          "10 부분적분": ["2022-6-모평-24","2023-9-모평-24","2024-9-모평-24","2024-수능-25","2025-6-모평-24","2026-9-모평-24"],
+          "11 정적분 기법": ["2022-9-모평-26","2023-6-모평-26","2023-9-모평-24","2024-6-모평-26","2024-9-모평-24","2024-수능-26","2025-6-모평-26","2025-9-모평-26","2026-9-모평-24"],
+          "11 정적분으로 정의된 함수": ["2022-6-모평-28","2023-6-모평-28","2024-6-모평-28","2025-6-모평-28","2026-6-모평-28"],
+          "12 넓이": ["2022-9-모평-26","2022-수능-26","2023-6-모평-26","2023-9-모평-26","2023-수능-26","2024-6-모평-26","2024-9-모평-26","2024-수능-26","2025-6-모평-26","2025-9-모평-26","2026-9-모평-26"],
+          "12 부피": ["2022-9-모평-26","2023-9-모평-26","2023-수능-26","2024-6-모평-26","2024-9-모평-26","2024-수능-26","2025-9-모평-26","2026-수능-26"],
+          "12 속도·거리": ["2022-6-모평-11","2022-9-모평-11","2023-6-모평-11","2024-6-모평-11","2024-9-모평-11","2024-수능-10","2025-6-모평-19","2026-6-모평-11"],
+        }
+      }
     };
-    const [ay,at,an] = parse(a), [by,bt,bn] = parse(b);
-    return ay!==by ? ay-by : at!==bt ? at-bt : an-bn;
-  });
 
-  currentQuestions = sorted;
-  document.getElementById('qlist-title').textContent = name;
+    // ══════════════════════════════════════════════════
+    // 유튜브 타임스탬프 데이터
+    // ══════════════════════════════════════════════════
+    const TIMESTAMPS = {
+      "2026_수능": {
+        "전체": {
+          "url": "https://www.youtube.com/watch?v=LMqpyIMOMqE",
+          "video_id": "LMqpyIMOMqE",
+          "timestamps": {
+            "1": 71, "2": 84, "3": 103, "4": 130, "5": 154, "6": 184, "7": 262, "8": 297, "9": 376,
+            "10": 559, "11": 776, "12": 1034, "13": 1140, "14": 1326, "15": 1666, "16": 2198, "17": 2220,
+            "18": 2244, "19": 2297, "20": 2442, "21": 2713, "22": 3440, "23": 4954, "24": 4969, "25": 5020,
+            "26": 5045, "27": 5137, "28": 5335, "29": 5774, "30": 6115
+          }
+        }
+      },
+      "2026_9월": {
+        "전체": {
+          "url": "https://www.youtube.com/watch?v=uh074A4is_M",
+          "video_id": "uh074A4is_M",
+          "timestamps": {
+            "1": 113, "2": 127, "3": 144, "4": 161, "5": 172, "6": 203, "7": 249, "8": 285, "9": 346,
+            "10": 427, "11": 605, "12": 774, "13": 947, "14": 1194, "15": 1412, "16": 1860, "17": 1882,
+            "18": 1911, "19": 1979, "20": 2101, "22": 2360, "23": 4013, "24": 4035, "25": 4074,
+            "26": 4130, "27": 4240, "28": 4407, "29": 4960, "30": 5379
+          }
+        }
+      },
+      "2026_6월": {
+        "전체": {
+          "url": "https://www.youtube.com/watch?v=YdHTpydLrjI",
+          "video_id": "YdHTpydLrjI",
+          "timestamps": {
+            "1": 66, "2": 75, "3": 87, "4": 99, "5": 120, "6": 137, "7": 164, "8": 198, "9": 238,
+            "10": 281, "11": 364, "12": 441, "13": 547, "14": 625, "15": 917, "16": 1238, "17": 1269,
+            "18": 1289, "19": 1313, "20": 1365, "23": 2340, "24": 2353, "25": 2394, "26": 2490,
+            "27": 2589, "28": 2773, "29": 3185, "30": 3422
+          }
+        }
+      },
+      "2025_수능": {
+        "전체": {
+          "url": "https://www.youtube.com/watch?v=LgyGhI8ye4c",
+          "video_id": "LgyGhI8ye4c",
+          "timestamps": {
+            "1": 10, "2": 19, "3": 37, "4": 60, "5": 86, "6": 115, "7": 143, "8": 161, "9": 200,
+            "10": 276, "11": 369, "12": 416, "13": 528, "14": 718, "15": 949, "16": 1297, "17": 1331,
+            "18": 1356, "19": 1412, "20": 1502, "21": 1672, "22": 1890, "23": 3075, "24": 3085,
+            "25": 3102, "26": 3141, "27": 3206, "28": 3564, "29": 3986, "30": 4504
+          }
+        }
+      },
+      "2025_9월": {
+        "선택": {
+          "url": "https://www.youtube.com/watch?v=vWo3cqNiBv4",
+          "video_id": "vWo3cqNiBv4",
+          "timestamps": {
+            "23": 1075, "24": 1082, "25": 1129, "26": 1171, "27": 1306, "28": 1365, "29": 1639, "30": 1780
+          }
+        },
+        "공통": {
+          "url": "https://www.youtube.com/watch?v=adtr7iwtlGw",
+          "video_id": "adtr7iwtlGw",
+          "timestamps": {
+            "1": 37, "2": 50, "3": 62, "4": 95, "5": 105, "6": 133, "7": 181, "8": 218, "9": 286,
+            "10": 340, "11": 454, "12": 519, "13": 746, "14": 953, "15": 1379, "16": 1507, "17": 1548,
+            "18": 1570, "19": 1614, "20": 1680, "21": 1843, "22": 2050
+          }
+        }
+      },
+      "2025_6월": {
+        "선택": {
+          "url": "https://www.youtube.com/watch?v=qD-15TURGfc",
+          "video_id": "qD-15TURGfc",
+          "timestamps": {}
+        },
+        "공통": {
+          "url": "https://www.youtube.com/watch?v=8KpFTgnZzH0",
+          "video_id": "8KpFTgnZzH0",
+          "timestamps": {
+            "1": 81, "2": 98, "3": 113, "4": 132, "5": 146, "6": 166, "7": 206, "8": 305, "9": 376,
+            "10": 434, "11": 590, "12": 726, "13": 1038, "14": 1128, "15": 1362, "16": 2034, "17": 2094,
+            "18": 2117, "19": 2142, "20": 2315, "21": 2695, "22": 2996
+          }
+        }
+      },
+      "2024_수능": {
+        "공통": {
+          "url": "https://www.youtube.com/watch?v=gdcisxia9ZM",
+          "video_id": "gdcisxia9ZM",
+          "timestamps": {
+            "1": 43, "2": 67, "3": 83, "4": 114, "5": 132, "6": 199, "7": 248, "8": 274, "9": 337,
+            "10": 394, "11": 540, "12": 674, "13": 1016, "14": 1156, "15": 1500, "16": 1753, "17": 1766,
+            "18": 1784, "19": 1820, "20": 2019, "21": 2243, "22": 2505
+          }
+        },
+        "선택": {
+          "url": "https://www.youtube.com/watch?v=3jggenmEcO8",
+          "video_id": "3jggenmEcO8",
+          "timestamps": {
+            "23": 2439, "24": 2471, "25": 2529, "26": 2596, "27": 2755, "28": 2960, "29": 3313, "30": 3457
+          }
+        }
+      },
+      "2024_9월": {
+        "전체": {
+          "url": "https://www.youtube.com/watch?v=oRllHeD-TAs",
+          "video_id": "oRllHeD-TAs",
+          "timestamps": {
+            "1": 58, "2": 64, "3": 73, "4": 93, "5": 103, "6": 133, "7": 184, "8": 230, "9": 278,
+            "10": 392, "11": 592, "12": 858, "13": 1151, "14": 1528, "15": 1835, "16": 2061, "17": 2088,
+            "18": 2120, "19": 2160, "20": 2192, "21": 2340, "22": 2599, "23": 4981, "24": 4997,
+            "25": 5013, "26": 5040, "27": 5184, "28": 5271, "29": 5474, "30": 5661
+          }
+        }
+      },
+      "2024_6월": {
+        "전체": {
+          "url": "https://www.youtube.com/watch?v=DNw_hnriQjM",
+          "video_id": "DNw_hnriQjM",
+          "timestamps": {
+            "1": 37, "2": 50, "3": 63, "4": 81, "5": 100, "6": 133, "7": 214, "8": 281, "9": 358,
+            "10": 441, "11": 538, "12": 681, "13": 988, "14": 1279, "15": 1513, "16": 1819, "17": 1840,
+            "18": 1865, "19": 1933, "20": 2067, "21": 2353, "22": 2711, "23": 4155, "24": 4173,
+            "25": 4246, "26": 4305, "27": 4480, "28": 3575, "29": 4649, "30": 4886
+          }
+        }
+      },
+      "2023_수능": {
+        "전체": {
+          "url": "https://www.youtube.com/watch?v=hnsh2xd2HSM",
+          "video_id": "hnsh2xd2HSM",
+          "timestamps": {
+            "1": 12, "2": 30, "3": 43, "4": 83, "5": 116, "6": 162, "7": 200, "8": 292, "9": 352,
+            "10": 494, "11": 555, "12": 688, "13": 886, "15": 1007, "16": 1361, "17": 1384, "18": 1403,
+            "19": 1437, "20": 1502, "21": 1650, "22": 1898, "23": 4551, "24": 4576, "25": 4613,
+            "26": 4705, "27": 4815, "28": 4898, "29": 5038, "30": 5311
+          }
+        }
+      },
+      "2023_9월": {
+        "전체": {
+          "url": "https://www.youtube.com/watch?v=4V6MeB_o9Js",
+          "video_id": "4V6MeB_o9Js",
+          "timestamps": {
+            "1": 37, "2": 50, "3": 69, "4": 110, "5": 133, "6": 183, "7": 226, "8": 283, "9": 344,
+            "10": 549, "11": 623, "12": 729, "13": 844, "14": 1062, "15": 1492, "16": 1828, "17": 1859,
+            "18": 1893, "19": 1914, "20": 2021, "21": 2314, "22": 2561, "23": 4886, "24": 4916,
+            "25": 4956, "26": 4995, "27": 5068, "28": 5169, "29": 5344, "30": 5674
+          }
+        }
+      },
+      "2023_6월": {
+        "전체": {
+          "url": "https://www.youtube.com/watch?v=ZiOHXmNvOoM",
+          "video_id": "ZiOHXmNvOoM",
+          "timestamps": {
+            "1": 14, "2": 33, "3": 46, "4": 68, "5": 78, "6": 112, "7": 165, "8": 229, "9": 302,
+            "10": 382, "11": 561, "12": 611, "13": 859, "14": 1041, "15": 1403, "16": 1680, "17": 1704,
+            "18": 1726, "19": 1741, "20": 1787, "21": 1996, "22": 2177, "23": 4428, "24": 4442,
+            "25": 4476, "26": 4529, "27": 4710, "28": 3576, "29": 4813, "30": 5095
+          }
+        }
+      },
+      "2022_수능": {
+        "전체": {
+          "url": "https://www.youtube.com/watch?v=fTJFdn_m4J0",
+          "video_id": "fTJFdn_m4J0",
+          "timestamps": {
+            "1": 16, "2": 35, "3": 50, "4": 79, "5": 91, "6": 144, "7": 245, "8": 301, "9": 411,
+            "10": 536, "11": 707, "12": 845, "13": 984, "14": 1141, "15": 1329, "16": 1534, "17": 1548,
+            "18": 1567, "19": 1594, "20": 1639, "21": 1787, "22": 1964, "23": 4763, "24": 4798,
+            "25": 4827, "26": 4857, "27": 5029, "28": 5151, "29": 5406, "30": 5780
+          }
+        }
+      },
+      "2022_9월": {
+        "전체": {
+          "url": "https://www.youtube.com/watch?v=hE3PsTES8tE",
+          "video_id": "hE3PsTES8tE",
+          "timestamps": {
+            "1": 18, "2": 33, "3": 46, "4": 80, "5": 106, "6": 162, "7": 206, "8": 266, "9": 361,
+            "10": 461, "11": 591, "12": 716, "13": 850, "14": 1047, "15": 1237, "16": 1733, "17": 1743,
+            "18": 1768, "19": 1796, "20": 1856, "21": 2091, "23": 4518, "24": 4540, "25": 4561,
+            "26": 4632, "27": 4783, "28": 4853, "29": 4974, "30": 5210
+          }
+        }
+      },
+      "2022_6월": {
+        "전체": {
+          "url": "https://www.youtube.com/watch?v=blRwC0qTRqg",
+          "video_id": "blRwC0qTRqg",
+          "timestamps": {
+            "1": 21, "2": 28, "3": 48, "4": 74, "5": 83, "6": 113, "7": 142, "8": 183, "9": 221,
+            "10": 299, "11": 390, "12": 496, "13": 641, "14": 788, "15": 1102, "16": 1377, "17": 1387,
+            "18": 1409, "19": 1447, "20": 1498, "21": 1625, "22": 1771, "23": 3669, "24": 3690,
+            "25": 3709, "26": 3755, "27": 3811, "28": 3979, "29": 4100, "30": 4342
+          }
+        }
+      }
+    };
 
-  const qlist = document.getElementById('qlist');
-  qlist.innerHTML = '';
-  sorted.forEach((code, i) => {
-    const item = document.createElement('div');
-    item.className = 'q-item';
-    item.id = `qi-${i}`;
-    const note = savedStrokes[code] ? '<span class="has-note">✍</span>' : '';
-    item.innerHTML = `<span class="idx">${i+1}</span>${code}${note}`;
-    item.addEventListener('click', () => selectQuestion(i));
-    qlist.appendChild(item);
-  });
-}
-
-// ══════════════════════════════════════════════════
-// 문제 선택
-// ══════════════════════════════════════════════════
-function selectQuestion(idx) {
-  if (currentIdx >= 0) saveCurrentStroke();
-  currentIdx = idx;
-  const code = currentQuestions[idx];
-
-  document.querySelectorAll('.q-item').forEach(el => el.classList.remove('active'));
-  const qEl = document.getElementById(`qi-${idx}`);
-  if (qEl) { qEl.classList.add('active'); qEl.scrollIntoView({block:'nearest'}); }
-
-  const img   = document.getElementById('problem-img');
-  const paper = document.getElementById('paper');
-  const empty = document.getElementById('empty-state');
-
-  img.src = codeToPath(code);
-  paper.style.display = 'block';
-  empty.style.display = 'none';
-
-  updateNavInfo();
-}
-
-// ══════════════════════════════════════════════════
-// 이미지 로드 완료 → 캔버스 세팅
-// ══════════════════════════════════════════════════
-function onImgLoad() {
-  const img    = document.getElementById('problem-img');
-  const extra  = document.getElementById('extra-space');
-  const canvas = document.getElementById('draw-canvas');
-  const paper  = document.getElementById('paper');
-
-  // paper 너비 = 뷰어 너비에 맞춤 (최소 860)
-  const viewerW = document.getElementById('viewer').clientWidth;
-  const paperW  = Math.max(860, viewerW - 40);
-  paper.style.width = paperW + 'px';
-
-  // 캔버스 = 이미지 높이 + 추가 여백 높이
-  const imgH    = img.offsetHeight;
-  const extraH  = 600;
-  extra.style.height = extraH + 'px';
-
-  canvas.width  = paperW;
-  canvas.height = imgH + extraH;
-  canvas.style.width  = paperW + 'px';
-  canvas.style.height = (imgH + extraH) + 'px';
-
-  // 흰 배경 채우기 (캔버스 기본은 투명)
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // 저장된 필기 복원
-  const code = currentQuestions[currentIdx];
-  if (code && savedStrokes[code]) {
-    const tmp = new Image();
-    tmp.onload = () => ctx.drawImage(tmp, 0, 0);
-    tmp.src = savedStrokes[code];
-  }
-
-  applyZoom();
-}
-
-// ══════════════════════════════════════════════════
-// 내비게이션
-// ══════════════════════════════════════════════════
-function navigate(dir) {
-  if (!currentQuestions.length) return;
-  const next = currentIdx + dir;
-  if (next < 0 || next >= currentQuestions.length) return;
-  selectQuestion(next);
-}
-function updateNavInfo() {
-  const el = document.getElementById('nav-info');
-  el.textContent = currentIdx < 0 ? '—' : `${currentIdx+1} / ${currentQuestions.length}`;
-}
-
-// ══════════════════════════════════════════════════
-// 줌
-// ══════════════════════════════════════════════════
-function changeZoom(delta) {
-  zoom = Math.min(3, Math.max(0.3, +(zoom + delta).toFixed(2)));
-  applyZoom();
-}
-function resetZoom() { zoom = 1; applyZoom(); }
-function applyZoom() {
-  const paper = document.getElementById('paper');
-  paper.style.transform = `scale(${zoom})`;
-  paper.style.transformOrigin = 'top left';
-  // 스크롤 영역이 줌된 크기를 감지하도록 wrapper 높이 조정
-  const scroll = document.getElementById('viewer-scroll');
-  scroll.style.height = '100%';
-  document.getElementById('zoom-label').textContent = Math.round(zoom*100) + '%';
-}
-
-// ══════════════════════════════════════════════════
-// 드로잉
-// ══════════════════════════════════════════════════
-function setTool(t) {
-  tool = t;
-  document.getElementById('btn-pen').classList.toggle('active', t==='pen');
-  document.getElementById('btn-eraser').classList.toggle('active', t==='eraser');
-}
-function setColor(c) {
-  penColor = c;
-  document.querySelectorAll('.color-swatch').forEach(el => {
-    const bg = el.style.backgroundColor || el.style.background;
-    el.classList.toggle('selected', bg === c || el.style.background === c);
-  });
-  if (tool !== 'pen') setTool('pen');
-}
-
-const canvas = document.getElementById('draw-canvas');
-const ctx    = canvas.getContext('2d');
-
-function getCanvasPos(e) {
-  const rect   = canvas.getBoundingClientRect();
-  const scaleX = canvas.width  / rect.width;
-  const scaleY = canvas.height / rect.height;
-  const cx = e.touches ? e.touches[0].clientX : e.clientX;
-  const cy = e.touches ? e.touches[0].clientY : e.clientY;
-  return { x: (cx - rect.left) * scaleX, y: (cy - rect.top) * scaleY };
-}
-
-function startDraw(e) {
-  if (currentIdx < 0) return;
-  e.preventDefault();
-  drawing = true;
-  const p = getCanvasPos(e);
-  lastX = p.x; lastY = p.y;
-}
-function doDraw(e) {
-  if (!drawing) return;
-  e.preventDefault();
-  const p = getCanvasPos(e);
-  ctx.beginPath();
-  if (tool === 'eraser') {
-    ctx.globalCompositeOperation = 'destination-out';
-    ctx.lineWidth = penSize * 5;
-  } else {
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.strokeStyle = penColor;
-    ctx.lineWidth = penSize;
-  }
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  ctx.moveTo(lastX, lastY);
-  ctx.lineTo(p.x, p.y);
-  ctx.stroke();
-  lastX = p.x; lastY = p.y;
-}
-function endDraw() {
-  drawing = false;
-  ctx.globalCompositeOperation = 'source-over';
-}
-
-canvas.addEventListener('mousedown',  startDraw);
-canvas.addEventListener('mousemove',  doDraw);
-canvas.addEventListener('mouseup',    endDraw);
-canvas.addEventListener('mouseleave', endDraw);
-canvas.addEventListener('touchstart', startDraw, {passive:false});
-canvas.addEventListener('touchmove',  doDraw,    {passive:false});
-canvas.addEventListener('touchend',   endDraw);
-
-function clearCanvas() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  if (currentIdx >= 0) delete savedStrokes[currentQuestions[currentIdx]];
-  refreshQListNote();
-}
-
-function saveCurrentStroke() {
-  const code = currentQuestions[currentIdx];
-  if (!code) return;
-  const blank = document.createElement('canvas');
-  blank.width = canvas.width; blank.height = canvas.height;
-  if (canvas.toDataURL() !== blank.toDataURL()) {
-    savedStrokes[code] = canvas.toDataURL();
-  } else {
-    delete savedStrokes[code];
-  }
-  refreshQListNote();
-}
-
-function refreshQListNote() {
-  document.querySelectorAll('.q-item').forEach((el, i) => {
-    const code = currentQuestions[i];
-    const noteSpan = el.querySelector('.has-note');
-    if (savedStrokes[code] && !noteSpan) {
-      el.insertAdjacentHTML('beforeend','<span class="has-note">✍</span>');
-    } else if (!savedStrokes[code] && noteSpan) {
-      noteSpan.remove();
+    // ══════════════════════════════════════════════════
+    // 유틸리티 함수
+    // ══════════════════════════════════════════════════
+    function codeToPath(code) {
+      const parts = code.split('-');
+      const year = parts[0];
+      const num = parseInt(parts[parts.length - 1]);
+      const mid = parts.slice(1, -1).join('-');
+      let dir;
+      if (mid === '수능') dir = `${year}년도_수능`;
+      else if (mid.includes('6')) dir = `${year}년도_6월모의고사`;
+      else dir = `${year}년도_9월모의고사`;
+      const numStr = String(num).padStart(2, '0');
+      const calcPart = num >= 23 ? '_미적분' : '';
+      return `크롭결과/${dir}/${dir}${calcPart}_${numStr}번.png`;
     }
-  });
-}
 
-// ══════════════════════════════════════════════════
-// PNG 저장 (문제 + 필기 합치기)
-// ══════════════════════════════════════════════════
-function saveWithDrawing() {
-  if (currentIdx < 0) return;
-  const img = document.getElementById('problem-img');
-  const out = document.createElement('canvas');
-  out.width  = canvas.width;
-  out.height = canvas.height;
-  const oc = out.getContext('2d');
-  // 흰 배경
-  oc.fillStyle = '#ffffff';
-  oc.fillRect(0, 0, out.width, out.height);
-  // 문제 이미지
-  oc.drawImage(img, 0, 0, canvas.width, img.naturalHeight * (canvas.width / img.naturalWidth));
-  // 필기
-  oc.drawImage(canvas, 0, 0);
-  const link = document.createElement('a');
-  link.download = `${currentQuestions[currentIdx]}_풀이.png`;
-  link.href = out.toDataURL('image/png');
-  link.click();
-}
+    function codeToExamKey(code) {
+      const parts = code.split('-');
+      const year = parts[0];
+      const mid = parts.slice(1, -1).join('-');
+      if (mid === '수능') return `${year}_수능`;
+      if (mid.includes('6')) return `${year}_6월`;
+      if (mid.includes('9')) return `${year}_9월`;
+      return null;
+    }
 
-// ══════════════════════════════════════════════════
-// 키보드 단축키
-// ══════════════════════════════════════════════════
-document.addEventListener('keydown', e => {
-  if (e.target.tagName === 'INPUT') return;
-  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') navigate(1);
-  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   navigate(-1);
-  if (e.key === '+' || e.key === '=') changeZoom(0.15);
-  if (e.key === '-') changeZoom(-0.15);
-  if (e.key === '0') resetZoom();
-  if (e.key === 'p') setTool('pen');
-  if (e.key === 'e') setTool('eraser');
-});
+    function getVideoInfo(code) {
+      const key = codeToExamKey(code);
+      if (!key || !TIMESTAMPS[key]) return null;
+      const examData = TIMESTAMPS[key];
+      const num = parseInt(code.split('-').pop());
+      let category = null;
+      if (examData['전체']) category = '전체';
+      else if (num <= 22 && examData['공통']) category = '공통';
+      else if (num >= 23 && examData['선택']) category = '선택';
+      if (!category) return null;
+      const catData = examData[category];
+      if (!catData || !catData.timestamps || catData.timestamps[num] === undefined) return null;
+      return {
+        videoId: catData.video_id,
+        startTime: catData.timestamps[num],
+        url: catData.url
+      };
+    }
 
-buildTree();
-</script>
+    // ══════════════════════════════════════════════════
+    // 새 탭에서 유튜브 열기 (iframe 대신)
+    // ══════════════════════════════════════════════════
+    function openVideoInNewTab() {
+      if (currentIdx < 0) return;
+      const code = currentQuestions[currentIdx];
+      const info = getVideoInfo(code);
+      if (!info || !info.videoId) return;
+
+      // YouTube watch URL 생성 (시작 시간 포함)
+      let url = `https://www.youtube.com/watch?v=${info.videoId}`;
+      if (typeof info.startTime === 'number' && !isNaN(info.startTime) && info.startTime >= 0) {
+        url += `&t=${info.startTime}s`;
+      }
+      window.open(url, '_blank');
+    }
+
+    // ══════════════════════════════════════════════════
+    // 상태
+    // ══════════════════════════════════════════════════
+    let currentQuestions = [];
+    let currentIdx = -1;
+    let zoom = 1;
+    let tool = 'pen';
+    let penColor = '#ef5350';
+    let penSize = 3;
+    let drawing = false;
+    let lastX = 0, lastY = 0;
+    const savedStrokes = {};
+    const panelState = { sidebar: true, 'qlist-panel': true };
+
+    // ══════════════════════════════════════════════════
+    // 패널 토글
+    // ══════════════════════════════════════════════════
+    function togglePanel(id) {
+      panelState[id] = !panelState[id];
+      const el = document.getElementById(id);
+      el.classList.toggle('collapsed', !panelState[id]);
+      const btnId = id === 'sidebar' ? 'btn-sidebar' : 'btn-qlist';
+      document.getElementById(btnId).classList.toggle('on', panelState[id]);
+    }
+
+    function closePanels() {
+      ['sidebar','qlist-panel'].forEach(id => {
+        panelState[id] = false;
+        document.getElementById(id).classList.add('collapsed');
+      });
+      document.getElementById('btn-sidebar').classList.remove('on');
+      document.getElementById('btn-qlist').classList.remove('on');
+      document.getElementById('overlay').classList.remove('show');
+    }
+
+    // ══════════════════════════════════════════════════
+    // 트리 렌더링
+    // ══════════════════════════════════════════════════
+    function buildTree() {
+      const tree = document.getElementById('tree');
+      tree.innerHTML = '';
+      Object.entries(DB).forEach(([subject, data]) => {
+        const totalQ = Object.values(data.chapters).reduce((s,a) => s+a.length, 0);
+        const subEl = document.createElement('div');
+        subEl.className = `subject-node ${data.color}`;
+        subEl.innerHTML = `<span class="arrow">▾</span> ${subject} <span class="badge">${totalQ}</span>`;
+        const chapList = document.createElement('div');
+        chapList.className = 'subject-chapters open';
+        Object.entries(data.chapters).forEach(([name, questions]) => {
+          const chapEl = document.createElement('div');
+          chapEl.className = 'chapter-node';
+          chapEl.innerHTML = `${name}<span class="cnt">${questions.length}</span>`;
+          chapEl.addEventListener('click', () => selectChapter(chapEl, name, questions));
+          chapList.appendChild(chapEl);
+        });
+        subEl.addEventListener('click', () => {
+          chapList.classList.toggle('open');
+          subEl.querySelector('.arrow').textContent = chapList.classList.contains('open') ? '▾' : '▸';
+        });
+        tree.appendChild(subEl);
+        tree.appendChild(chapList);
+      });
+    }
+
+    // ══════════════════════════════════════════════════
+    // 단원 선택
+    // ══════════════════════════════════════════════════
+    let activeChapEl = null;
+    function selectChapter(el, name, questions) {
+      if (activeChapEl) activeChapEl.classList.remove('active');
+      activeChapEl = el;
+      el.classList.add('active');
+      const sorted = [...questions].sort((a, b) => {
+        const parse = c => {
+          const p = c.split('-');
+          const y = parseInt(p[0]);
+          const n = parseInt(p[p.length-1]);
+          const m = p.slice(1,-1).join('');
+          const t = m.includes('6') ? 1 : m.includes('9') ? 2 : 3;
+          return [y, t, n];
+        };
+        const [ay,at,an] = parse(a), [by,bt,bn] = parse(b);
+        return ay!==by ? ay-by : at!==bt ? at-bt : an-bn;
+      });
+      currentQuestions = sorted;
+      document.getElementById('qlist-title').textContent = name;
+      const qlist = document.getElementById('qlist');
+      qlist.innerHTML = '';
+      sorted.forEach((code, i) => {
+        const item = document.createElement('div');
+        item.className = 'q-item';
+        item.id = `qi-${i}`;
+        const hasNote = savedStrokes[code];
+        const hasVideo = getVideoInfo(code) !== null;
+        let extras = '';
+        if (hasVideo) extras += '<span class="has-video">▶</span>';
+        if (hasNote) extras += '<span class="has-note">✍</span>';
+        item.innerHTML = `<span class="idx">${i+1}</span>${code}${extras}`;
+        item.addEventListener('click', () => selectQuestion(i));
+        qlist.appendChild(item);
+      });
+    }
+
+    // ══════════════════════════════════════════════════
+    // 문제 선택
+    // ══════════════════════════════════════════════════
+    function selectQuestion(idx) {
+      if (currentIdx >= 0) saveCurrentStroke();
+      currentIdx = idx;
+      const code = currentQuestions[idx];
+      document.querySelectorAll('.q-item').forEach(el => el.classList.remove('active'));
+      const qEl = document.getElementById(`qi-${idx}`);
+      if (qEl) {
+        qEl.classList.add('active');
+        qEl.scrollIntoView({block:'nearest'});
+      }
+      const img = document.getElementById('problem-img');
+      const paper = document.getElementById('paper');
+      const empty = document.getElementById('empty-state');
+      img.src = codeToPath(code);
+      paper.style.display = 'block';
+      empty.style.display = 'none';
+      updateNavInfo();
+      updateVideoButton();
+    }
+
+    function updateVideoButton() {
+      const btn = document.getElementById('btn-video');
+      if (currentIdx < 0) {
+        btn.disabled = true;
+        return;
+      }
+      const code = currentQuestions[currentIdx];
+      const info = getVideoInfo(code);
+      btn.disabled = !info;
+    }
+
+    // ══════════════════════════════════════════════════
+    // 이미지 로드 완료 → 캔버스 세팅
+    // ══════════════════════════════════════════════════
+    function onImgLoad() {
+      const img = document.getElementById('problem-img');
+      const extra = document.getElementById('extra-space');
+      const canvas = document.getElementById('draw-canvas');
+      const paper = document.getElementById('paper');
+      const viewerW = document.getElementById('viewer').clientWidth;
+      const paperW = Math.max(860, viewerW - 40);
+      paper.style.width = paperW + 'px';
+      const imgH = img.offsetHeight;
+      const extraH = 600;
+      extra.style.height = extraH + 'px';
+      canvas.width = paperW;
+      canvas.height = imgH + extraH;
+      canvas.style.width = paperW + 'px';
+      canvas.style.height = (imgH + extraH) + 'px';
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const code = currentQuestions[currentIdx];
+      if (code && savedStrokes[code]) {
+        const tmp = new Image();
+        tmp.onload = () => ctx.drawImage(tmp, 0, 0);
+        tmp.src = savedStrokes[code];
+      }
+      applyZoom();
+    }
+
+    // ══════════════════════════════════════════════════
+    // 내비게이션
+    // ══════════════════════════════════════════════════
+    function navigate(dir) {
+      if (!currentQuestions.length) return;
+      const next = currentIdx + dir;
+      if (next < 0 || next >= currentQuestions.length) return;
+      selectQuestion(next);
+    }
+
+    function updateNavInfo() {
+      const el = document.getElementById('nav-info');
+      el.textContent = currentIdx < 0 ? '—' : `${currentIdx+1} / ${currentQuestions.length}`;
+    }
+
+    // ══════════════════════════════════════════════════
+    // 줌
+    // ══════════════════════════════════════════════════
+    function changeZoom(delta) {
+      zoom = Math.min(3, Math.max(0.3, +(zoom + delta).toFixed(2)));
+      applyZoom();
+    }
+    function resetZoom() {
+      zoom = 1;
+      applyZoom();
+    }
+    function applyZoom() {
+      const paper = document.getElementById('paper');
+      paper.style.transform = `scale(${zoom})`;
+      paper.style.transformOrigin = 'top left';
+      document.getElementById('zoom-label').textContent = Math.round(zoom*100) + '%';
+    }
+
+    // ══════════════════════════════════════════════════
+    // 드로잉
+    // ══════════════════════════════════════════════════
+    function setTool(t) {
+      tool = t;
+      document.getElementById('btn-pen').classList.toggle('active', t==='pen');
+      document.getElementById('btn-eraser').classList.toggle('active', t==='eraser');
+    }
+    function setColor(c) {
+      penColor = c;
+      document.querySelectorAll('.color-swatch').forEach(el => {
+        const bg = el.style.backgroundColor || el.style.background;
+        el.classList.toggle('selected', bg === c || el.style.background === c);
+      });
+      if (tool !== 'pen') setTool('pen');
+    }
+
+    const canvas = document.getElementById('draw-canvas');
+    const ctx = canvas.getContext('2d');
+
+    function getCanvasPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const cx = e.touches ? e.touches[0].clientX : e.clientX;
+      const cy = e.touches ? e.touches[0].clientY : e.clientY;
+      return { x: (cx - rect.left) * scaleX, y: (cy - rect.top) * scaleY };
+    }
+    function startDraw(e) {
+      if (currentIdx < 0) return;
+      e.preventDefault();
+      drawing = true;
+      const p = getCanvasPos(e);
+      lastX = p.x;
+      lastY = p.y;
+    }
+    function doDraw(e) {
+      if (!drawing) return;
+      e.preventDefault();
+      const p = getCanvasPos(e);
+      ctx.beginPath();
+      if (tool === 'eraser') {
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.lineWidth = penSize * 5;
+      } else {
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.strokeStyle = penColor;
+        ctx.lineWidth = penSize;
+      }
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.moveTo(lastX, lastY);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+      lastX = p.x;
+      lastY = p.y;
+    }
+    function endDraw() {
+      drawing = false;
+      ctx.globalCompositeOperation = 'source-over';
+    }
+
+    canvas.addEventListener('mousedown', startDraw);
+    canvas.addEventListener('mousemove', doDraw);
+    canvas.addEventListener('mouseup', endDraw);
+    canvas.addEventListener('mouseleave', endDraw);
+    canvas.addEventListener('touchstart', startDraw, {passive:false});
+    canvas.addEventListener('touchmove', doDraw, {passive:false});
+    canvas.addEventListener('touchend', endDraw);
+
+    function clearCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (currentIdx >= 0) delete savedStrokes[currentQuestions[currentIdx]];
+      refreshQListExtras();
+    }
+
+    function saveCurrentStroke() {
+      const code = currentQuestions[currentIdx];
+      if (!code) return;
+      const blank = document.createElement('canvas');
+      blank.width = canvas.width;
+      blank.height = canvas.height;
+      if (canvas.toDataURL() !== blank.toDataURL()) {
+        savedStrokes[code] = canvas.toDataURL();
+      } else {
+        delete savedStrokes[code];
+      }
+      refreshQListExtras();
+    }
+
+    function refreshQListExtras() {
+      document.querySelectorAll('.q-item').forEach((el, i) => {
+        const code = currentQuestions[i];
+        const noteSpan = el.querySelector('.has-note');
+        const videoSpan = el.querySelector('.has-video');
+        const hasNote = !!savedStrokes[code];
+        const hasVideo = getVideoInfo(code) !== null;
+        if (hasNote && !noteSpan) {
+          el.insertAdjacentHTML('beforeend','<span class="has-note">✍</span>');
+        } else if (!hasNote && noteSpan) {
+          noteSpan.remove();
+        }
+        if (hasVideo && !videoSpan) {
+          const idxSpan = el.querySelector('.idx');
+          if (idxSpan) idxSpan.insertAdjacentHTML('afterend','<span class="has-video">▶</span>');
+          else el.insertAdjacentHTML('afterbegin','<span class="has-video">▶</span>');
+        } else if (!hasVideo && videoSpan) {
+          videoSpan.remove();
+        }
+      });
+    }
+
+    // ══════════════════════════════════════════════════
+    // PNG 저장 (문제 + 필기 합치기)
+    // ══════════════════════════════════════════════════
+    function saveWithDrawing() {
+      if (currentIdx < 0) return;
+      const img = document.getElementById('problem-img');
+      const out = document.createElement('canvas');
+      out.width = canvas.width;
+      out.height = canvas.height;
+      const oc = out.getContext('2d');
+      oc.fillStyle = '#ffffff';
+      oc.fillRect(0, 0, out.width, out.height);
+      oc.drawImage(img, 0, 0, canvas.width, img.naturalHeight * (canvas.width / img.naturalWidth));
+      oc.drawImage(canvas, 0, 0);
+      const link = document.createElement('a');
+      link.download = `${currentQuestions[currentIdx]}_풀이.png`;
+      link.href = out.toDataURL('image/png');
+      link.click();
+    }
+
+    // ══════════════════════════════════════════════════
+    // 키보드 단축키
+    // ══════════════════════════════════════════════════
+    document.addEventListener('keydown', e => {
+      if (e.target.tagName === 'INPUT') return;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') navigate(1);
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') navigate(-1);
+      if (e.key === '+' || e.key === '=') changeZoom(0.15);
+      if (e.key === '-') changeZoom(-0.15);
+      if (e.key === '0') resetZoom();
+      if (e.key === 'p') setTool('pen');
+      if (e.key === 'e') setTool('eraser');
+      if (e.key === 'v' || e.key === 'V') openVideoInNewTab();
+    });
+
+    // 초기화
+    buildTree();
+  </script>
 </body>
 </html>
